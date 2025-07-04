@@ -5,10 +5,24 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:Checkin"
     Title="Checkin">
+    <TabBar>
+        <Tab
+            Title="test tab"
+            Icon="dotnet_bot.png">
+            <ShellContent
+                Title="Home"
+                ContentTemplate="{DataTemplate local:MainPage}"
+                Route="MainPage" /> 
+        </Tab>
+        <!--<Tab
+            Title="test tab"
+            Icon="dotnet_bot.png">
+            <ShellContent
+                Title="Home"
+                ContentTemplate="{DataTemplate local:MainPage}"
+                Route="MainPage" />
+        </Tab>-->
+    </TabBar>
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
 
 </Shell>
