@@ -2,8 +2,14 @@
 
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:Checkin"
+             xmlns:vm="clr-namespace:Checkin.ViewModels"
+             x:DataType="local:MainPage"
              x:Class="Checkin.MainPage">
 
+    <ContentPage.BindingContext>
+        <vm:CheckinViewModel />
+    </ContentPage.BindingContext>
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
@@ -28,7 +34,7 @@
                 Clicked="Checkin"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"
-                IsEnabled="{Binding Path=, Source={x:Reference Name=CheckinButton}}"/>
+                IsEnabled="{Binding IsCheckedIn}"/>
 
             <Button
                 x:Name="CheckoutButton"
@@ -39,7 +45,7 @@
                 Clicked="Checkout"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"
-                IsEnabled="True"/>
+                IsEnabled="{Binding CheckedIn}"/>
 
             <Button 
                 Text="Summary"

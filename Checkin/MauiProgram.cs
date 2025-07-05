@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Checkin.Services;
+using Checkin.ViewModel;
+using Microsoft.Extensions.Logging;
 
 namespace Checkin;
 
@@ -18,6 +20,10 @@ public static class MauiProgram
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
+        builder.Services.AddSingleton<MainPage>();
+        builder.Services.AddSingleton<MainViewModel>();
+        builder.Services.AddSingleton<IDispatcherTimer>((timer) => Application.Current.Dispatcher.CreateTimer());
+        builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
 
         return builder.Build();
     }
