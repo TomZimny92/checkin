@@ -27,7 +27,8 @@
                 BackgroundColor="Green"
                 Clicked="Checkin"
                 HorizontalOptions="Center"
-                VerticalOptions="Center" />
+                VerticalOptions="Center"
+                IsEnabled="{Binding Path=, Source={x:Reference Name=CheckinButton}}"/>
 
             <Button
                 x:Name="CheckoutButton"

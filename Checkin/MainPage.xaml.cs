@@ -8,7 +8,7 @@ public partial class MainPage : ContentPage
     private Boolean CheckedIn;
     private DateTime ElapsedTime;
     private List<DateTime> ContextCheckLog;
-    private List<ContextModel> ContextModels;
+    private List<ContextModel> ContextModels = [];
     //private string TestLabel;
 
     public MainPage()
@@ -71,8 +71,8 @@ public partial class MainPage : ContentPage
 
     private void GetSummary(object? sender, EventArgs e)
     {
-        var dateTime1 = ContextModels[0]?.Checks[1].CheckedTime;
-        var dateTime2 = ContextModels[0]?.Checks[0].CheckedTime;
+        var dateTime1 = ContextModels[0]?.Checks[1]?.CheckedTime;
+        var dateTime2 = ContextModels[0]?.Checks[0]?.CheckedTime;
         var result = dateTime2 - dateTime1;
         TestLabel.Text = result.ToString();
         // if still checked in, show the current live time

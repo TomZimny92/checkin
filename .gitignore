@@ -5,3 +5,7 @@ CopilotIndices
 DesignTimeBuild
 FileContentIndex
 v17
+*.json
+*.etag
+*.local
+*.user
