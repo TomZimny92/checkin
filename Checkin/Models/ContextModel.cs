@@ -10,6 +10,7 @@ namespace Checkin.Models
     {
         public int Id { get; set; }
         public required string Name { get; set; }
+        public Boolean CheckedIn { get; set; }
         public List<CheckModel>? Checks { get; set; }
         public string? Icon { get; set; }
     }

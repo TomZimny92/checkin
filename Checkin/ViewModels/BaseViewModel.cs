@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Checkin.ViewModel
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class BaseViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

@@ -1,4 +1,5 @@
 ﻿
+using Android.App;
 using Checkin.Models;
 using Checkin.ViewModel;
 using System.Security.Cryptography;
@@ -13,7 +14,7 @@ public partial class MainPage : ContentPage
     public ContextModel CurrentContext {  get; set; }
     //public List<ContextModel> ContextModels = [];
 
-    public MainPage(MainViewModel viewModel, IDispatcherTimer timer)
+    public MainPage(BaseViewModel viewModel, IDispatcherTimer timer)
     {
         InitializeComponent();
         LaunchSetup();
@@ -68,13 +69,15 @@ public partial class MainPage : ContentPage
                 cm.Add(formattedData);
                 dataCount++;
             }
-            else
+            else if (storedData == null && cm.Count == 0)
             {
                 dataCount = 0;
                 cm.Add(InitializeContext());
-                continue;
             }
-
+            else
+            {
+                dataCount = 0;
+            }
         }
         return cm;
     }

@@ -4,13 +4,50 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Checkin"
              xmlns:vm="clr-namespace:Checkin.ViewModels"
-             x:DataType="local:MainPage"
-             x:Class="Checkin.MainPage">
+             x:Class="Checkin.MainPage"
+             Title="Checkin">
 
     <ContentPage.BindingContext>
         <vm:CheckinViewModel />
     </ContentPage.BindingContext>
-    <ScrollView>
+
+    <Grid RowDefinitions="Auto, *, Auto" BackgroundColor="FloralWhite">
+        <Border Grid.Row="1"
+                Margin="10"
+                Stroke="LightBlue"
+                StrokeThickness="1"
+                BackgroundColor="Beige"
+                Padding="20"
+                VerticalOptions="Fill">
+            <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
+                <Label
+                    x:Name="ClockDisplay"
+                    Style="{StaticResource Headline}"
+                    SemanticProperties.HeadingLevel="Level1" />
+
+                <Button Text="Check IN"
+                        Command="{Binding CheckinButtonCommand}"
+                        IsEnabled="{Binding !IsCheckedIn}"
+                        WidthRequest="200"
+                        HeightRequest="50"
+                        BackgroundColor="Green"
+                        TextColor="White" />
+
+                <Button Text="Check OUT"
+                        Command="{Binding CheckoutButtonCommand}"
+                        IsEnabled="{Binding IsCheckedIn}"
+                        WidthRequest="200"
+                        HeightRequest="50"
+                        BackgroundColor="Red"
+                        TextColor="White" />
+                
+            </VerticalStackLayout>
+        </Border>
+        <ScrollView Orientation="Horizontal" Grid.Row="0" Margin="0,5">
+
+        </ScrollView>
+    </Grid>
+    <!--<ScrollView>
         <VerticalStackLayout
             Padding="30,0"
             Spacing="25">
@@ -66,6 +103,6 @@
                 VerticalOptions="Center" />
 
         </VerticalStackLayout>
-    </ScrollView>
+    </ScrollView>-->
 
 </ContentPage>

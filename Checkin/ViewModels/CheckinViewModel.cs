@@ -11,7 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Checkin.ViewModels
 {
-    public class CheckinViewModel : MainViewModel
+    public class CheckinViewModel : BaseViewModel
     {
     //    //IDispatcherTimer timer;
     //    //public CheckinViewModel(IDispatcherTimer timer)
