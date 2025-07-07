@@ -1,4 +1,4 @@
-﻿using Bumptech.Glide.Manager;
+﻿
 using Checkin.Models;
 using Checkin.ViewModel;
 using System.Text.Json;
@@ -15,7 +15,7 @@ public partial class MainPage : ContentPage
     public MainPage(MainViewModel viewModel, IDispatcherTimer timer)
     {
         InitializeComponent();
-        //LaunchSetup();
+        LaunchSetup();
         BindingContext = viewModel;
         _timer = timer;
         _timer.Interval = TimeSpan.FromSeconds(1);
@@ -34,17 +34,10 @@ public partial class MainPage : ContentPage
         _timer.Stop();
     }
 
-    //private void LaunchSetup()
-    //{
-    //    // if we find items in the local storage, populate the necessary objects
-    //        // 
-    //    var defaultContext = new ContextModel() { 
-    //        Id = 1,
-    //        Name = "Default",
-    //        Checks = [],
-    //    }; 
-    //    ContextModels.Add(defaultContext);
-    //}
+    private async void LaunchSetup()
+    {
+        ContextModels = await GetContextData();
+    }
 
     //IDispatcherTimer timer;
     //public CheckinViewModel(IDispatcherTimer timer)
@@ -61,6 +54,7 @@ public partial class MainPage : ContentPage
 
     private async Task<List<ContextModel>> GetContextData()
     {
+        var cm = new List<ContextModel>();
         var dataCount = 1;
         //var storedData = await SecureStorage.Default.GetAsync("1");
         while (dataCount > 0)
@@ -69,34 +63,18 @@ public partial class MainPage : ContentPage
             if (storedData != null)
             {
                 var formattedData = FormatStorageData(storedData);
-                ContextModels.Add(formattedData);
+                cm.Add(formattedData);
                 dataCount++;
             }
             else
             {
                 dataCount = 0;
-                ContextModels.Add(InitializeContext());
+                cm.Add(InitializeContext());
                 continue;
             }
 
         }
-        var cm = new List<ContextModel>();
-        if (storedData != null)
-        { // if we find data in the local storage
-
-            return cm;
-        }
-        else
-        {
-            var defaultContext = new ContextModel()
-            {
-                Id = 1,
-                Name = "Default",
-                Checks = [],
-            };
-            cm.Add(defaultContext);
-            return cm;
-        }
+        return cm;
     }
 
     public ContextModel InitializeContext()
@@ -127,7 +105,7 @@ public partial class MainPage : ContentPage
             return InitializeContext();
         }
     }
-    public void Checkin(object? sender, EventArgs e)
+    public async void Checkin(object? sender, EventArgs e)
     {
         CheckedIn = true;
         var timeStamp = new CheckModel()
@@ -136,11 +114,12 @@ public partial class MainPage : ContentPage
             CheckedTime = DateTime.Now,
         };
         ContextModels[0].Checks?.Add(timeStamp);
+        await SecureStorage.Default.SetAsync(ContextModels[0].Id.ToString(), JsonSerializer.Serialize(ContextModels[0]));
         // save timestamp to ContextCheckLog
         // when holding down, provide option to select custom Checkin time
     }
 
-    public void Checkout(object? sender, EventArgs e)
+    public async void Checkout(object? sender, EventArgs e)
     {
         CheckedIn = false;
         var timeStamp = new CheckModel()
@@ -149,16 +128,41 @@ public partial class MainPage : ContentPage
             CheckedTime = DateTime.Now,
         };
         ContextModels[0].Checks?.Add(timeStamp);
+        await SecureStorage.Default.SetAsync(ContextModels[0].Id.ToString(), JsonSerializer.Serialize(ContextModels[0]));
         // save timestamp to ContextCheckLog
         // when holding down, provide option to select custom Checkout time
     }
 
     public void GetSummary(object? sender, EventArgs e)
     {
-        var dateTime1 = ContextModels[0]?.Checks[1]?.CheckedTime;
-        var dateTime2 = ContextModels[0]?.Checks[0]?.CheckedTime;
-        var result = dateTime1 - dateTime2;
-        TestLabel.Text = result.ToString();
+        List<DateTime> checkinTime = [];
+        List<DateTime> checkoutTime = [];
+        if (ContextModels[0].Checks != null)
+        {
+            foreach (var item in ContextModels[0].Checks)
+            {
+                if (item.CheckedIn)
+                {
+                    checkinTime.Add(item.CheckedTime);
+                }
+                else
+                {
+                    checkoutTime.Add(item.CheckedTime);
+                }
+            }
+        }
+        var shiftLog = new List<TimeSpan>();
+        for (var i = 0; i < checkinTime.Count; i++)
+        {
+            var shift = checkoutTime[i] - checkinTime[i];
+            shiftLog.Add(shift);
+        }
+        TimeSpan total = new();
+        for (var i = 0; i < shiftLog.Count; i++)
+        {
+            total.Add(shiftLog[i]); // THIS IS NOT ADDING CORRECTLY
+        }
+        TestLabel.Text = total.ToString();
         // if still checked in, show the current live time
         // Nice to Have: also update the live preferences (money, rate, etc)
         // otherwise, show calculated time and the calculated preference
