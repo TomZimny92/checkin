@@ -25,13 +25,14 @@ namespace Checkin.ViewModels
             {
                 if (SetProperty(ref _selectedContext, value))
                 {
-                    OnPropertyChanged(nameof(SelectedContext));
-                    OnPropertyChanged(nameof(CurrentButton1Text));
-                    OnPropertyChanged(nameof(CurrentButton2Text));
-                    OnPropertyChanged(nameof(CurrentButton3Text));
-                    OnPropertyChanged(nameof(CurrentButton1Command));
-                    OnPropertyChanged(nameof(CurrentButton2Command));
-                    OnPropertyChanged(nameof(CurrentButton3Command));
+                    OnPropertyChanged(nameof(CurrentContextId));
+                    OnPropertyChanged(nameof(CurrentContextName));
+                    OnPropertyChanged(nameof(CurrentContextCheckedIn));
+                    OnPropertyChanged(nameof(CurrentContextChecks));
+                    OnPropertyChanged(nameof(CurrentContextIcon));
+                    OnPropertyChanged(nameof(CurrentCheckinButtonCommand));
+                    OnPropertyChanged(nameof(CurrentCheckoutButtonCommand));
+                    OnPropertyChanged(nameof(CurrentSummaryButtonCommand));
                 }
             }
         }
@@ -46,7 +47,7 @@ namespace Checkin.ViewModels
 
         public ICommand CurrentCheckinButtonCommand => SelectedContext.CheckinButtonCommand;
         public ICommand CurrentCheckoutButtonCommand => SelectedContext.CheckoutButtonCommand;
-        public ICommand CurrentSummaryButtonClicked => SelectedContext.SummaryButtonClicked;
+        public ICommand CurrentSummaryButtonCommand => SelectedContext.SummaryButtonClicked;
 
         public ICommand AddContextCommand { get; }
 
@@ -60,11 +61,12 @@ namespace Checkin.ViewModels
         {
 
             // 1) use SecureStorage.GetAsync to find the "current" context
-            var currentContext = SecureStorage.Default.GetAsync("current");
-            if (currentContext != null)
+            var currentContextRaw = SecureStorage.Default.GetAsync("current");
+            if (currentContextRaw.Result != null)
             {
                 // 2) use the id from the current context to pull that data from SecureStorage.GetAsync
-                var currentFormattedContext = FormatStorageData(currentContext.ToString());
+                var currentContext = SecureStorage.Default.GetAsync(currentContextRaw.Result);
+                var currentFormattedContext = FormatStorageData(currentContext.Result.ToString());
                 return new ContextViewModel(currentFormattedContext);
             }
             else
@@ -80,31 +82,39 @@ namespace Checkin.ViewModels
 
         private ObservableCollection<ContextViewModel> GetAllContexts()
         {
-            // use FormatStorageData()
             var cm = new ObservableCollection<ContextViewModel>();
-            var dataCount = 1;
-            //var storedData = await SecureStorage.Default.GetAsync("1");
-            while (dataCount > 0)
+            try
             {
-                var storedData = SecureStorage.Default.GetAsync(dataCount.ToString());
-                if (storedData != null)
+                // use FormatStorageData()
+                var dataCount = 1;
+                //var storedData = await SecureStorage.Default.GetAsync("1");
+                while (dataCount > 0)
                 {
-                    var formattedData = FormatStorageData(storedData.ToString());
-                    var cvm = new ContextViewModel(formattedData);
-                    cm.Add(cvm);
-                    dataCount++;
+                    var storedData = Task.Run(() => SecureStorage.Default.GetAsync(dataCount.ToString()).Result);
+                    if (storedData.Result != null)
+                    {
+                        var formattedData = FormatStorageData(storedData.Result.ToString());
+                        var cvm = new ContextViewModel(formattedData);
+                        cm.Add(cvm);
+                        dataCount++;
+                    }
+                    else if (storedData == null && cm.Count == 0)
+                    {
+                        dataCount = 0;
+                        cm.Add(new ContextViewModel(InitializeContext()));
+                    }
+                    else
+                    {
+                        dataCount = 0;
+                    }
                 }
-                else if (storedData == null && cm.Count == 0)
-                {
-                    dataCount = 0;
-                    cm.Add(InitializeContext());
-                }
-                else
-                {
-                    dataCount = 0;
-                }
+                return cm;
             }
-            return cm;
+            catch (Exception ex) {  
+                Console.WriteLine(ex.ToString());
+                return cm;
+            }
+            
         }
 
         private ContextModel FormatStorageData(string storedData)

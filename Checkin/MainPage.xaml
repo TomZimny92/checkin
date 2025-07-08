@@ -8,7 +8,7 @@
              Title="Checkin">
 
     <ContentPage.BindingContext>
-        <vm:CheckinViewModel />
+        <vm:MainPageViewModel />
     </ContentPage.BindingContext>
 
     <Grid RowDefinitions="Auto, *, Auto" BackgroundColor="FloralWhite">
@@ -26,83 +26,62 @@
                     SemanticProperties.HeadingLevel="Level1" />
 
                 <Button Text="Check IN"
-                        Command="{Binding CheckinButtonCommand}"
-                        IsEnabled="{Binding !IsCheckedIn}"
-                        WidthRequest="200"
+                        Command="{Binding CurrentCheckinButtonCommand}"
                         HeightRequest="50"
                         BackgroundColor="Green"
                         TextColor="White" />
 
                 <Button Text="Check OUT"
-                        Command="{Binding CheckoutButtonCommand}"
-                        IsEnabled="{Binding IsCheckedIn}"
+                        Command="{Binding CurrentCheckoutButtonCommand}"
                         WidthRequest="200"
                         HeightRequest="50"
                         BackgroundColor="Red"
                         TextColor="White" />
-                
+
+                <Button Text="Summary"
+                        Command="{Binding CurrentSummaryButtonCommand}"
+                        WidthRequest="200"
+                        HeightRequest="50"
+                        BackgroundColor="PaleGoldenrod"
+                        TextColor="White" />
+
             </VerticalStackLayout>
         </Border>
-        <ScrollView Orientation="Horizontal" Grid.Row="0" Margin="0,5">
 
+        <!--<Button Grid.Row="2"
+                Text="Add New Tab"
+                Command="{Binding AddTabCommand}"
+                Margin="20"
+                BackgroundColor="CadetBlue"
+                TextColor="White" />-->
+        
+        <ScrollView Orientation="Horizontal" Grid.Row="0" Margin="0,5">
+            <CollectionView ItemsSource="{Binding ContextItems}"
+                SelectedItem="{Binding SelectedContext, Mode=TwoWay}"
+                SelectionMode="Single">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="5" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ContextViewModel">
+                        <Border Stroke="Gray"
+                            StrokeThickness="1"
+                            Padding="10,5"
+                            BackgroundColor="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem, Converter={StaticResource SelectedTabToBackgroundColorConverter}, ConverterParameter={Binding .}}"
+                            Margin="5,0"
+                            WidthRequest="120"
+                            HeightRequest="40"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">   
+                        <Label Text="{Binding ContextName}"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            FontAttributes="Bold"
+                            TextColor="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem, Converter={StaticResource SelectedTabToTextColorConverter}, ConverterParameter={Binding .}}" />
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
         </ScrollView>
     </Grid>
-    <!--<ScrollView>
-        <VerticalStackLayout
-            Padding="30,0"
-            Spacing="25">
-
-            <Label
-                x:Name="ClockDisplay"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
-            
-            <Label
-                x:Name="TestLabel"
-                Style="{StaticResource Headline}"
-                SemanticProperties.HeadingLevel="Level1" />
-
-            <Button
-                x:Name="CheckinButton"
-                Text="Checkin"
-                TextColor="White"
-                FontSize="Header"
-                BackgroundColor="Green"
-                Clicked="Checkin"
-                HorizontalOptions="Center"
-                VerticalOptions="Center"
-                IsEnabled="{Binding IsCheckedIn}"/>
-
-            <Button
-                x:Name="CheckoutButton"
-                Text="Checkout" 
-                TextColor="White"
-                FontSize="Header"
-                BackgroundColor="Red"
-                Clicked="Checkout"
-                HorizontalOptions="Center"
-                VerticalOptions="Center"
-                IsEnabled="{Binding CheckedIn}"/>
-
-            <Button 
-                Text="Summary"
-                TextColor="White"
-                FontSize="Header"
-                BackgroundColor="Blue"
-                Clicked="GetSummary"
-                HorizontalOptions="Center"
-                VerticalOptions="Center" />
-
-            <Button 
-                Text="Reset"
-                TextColor="White"
-                FontSize="Medium"
-                BackgroundColor="Gray"
-                Clicked="GetSummary"
-                HorizontalOptions="Center"
-                VerticalOptions="Center" />
-
-        </VerticalStackLayout>
-    </ScrollView>-->
-
 </ContentPage>

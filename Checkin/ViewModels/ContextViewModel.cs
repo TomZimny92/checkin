@@ -18,9 +18,9 @@ namespace Checkin.ViewModels
         public ContextViewModel(ContextModel contextModel)
         {
             _contextItem = contextModel;
-            CheckinButtonCommand = new Command(OnCheckinClicked);
-            CheckoutButtonCommand = new Command(OnCheckoutClicked);
-            SummaryButtonClicked = new Command(OnSummaryClicked);
+            CheckinButtonCommand = new Command(execute: () => { OnCheckinClicked(); });
+            CheckoutButtonCommand = new Command(execute: () => { OnCheckoutClicked(); });
+            SummaryButtonClicked = new Command(execute: () => { OnSummaryClicked(); });
         }
 
         public int ContextId => _contextItem.Id;
@@ -29,11 +29,11 @@ namespace Checkin.ViewModels
         public List<CheckModel>? ContextChecks => _contextItem.Checks;
         public string? ContextIcon => _contextItem.Icon;
 
-        public ICommand CheckinButtonCommand { get; }
-        public ICommand CheckoutButtonCommand { get; }
-        public ICommand SummaryButtonClicked { get; }
+        public ICommand CheckinButtonCommand { get; private set; }
+        public ICommand CheckoutButtonCommand { get; private set; }
+        public ICommand SummaryButtonClicked { get; private set; }
 
-        private async void OnCheckinClicked()
+        private void OnCheckinClicked()
         {
             _contextItem.CheckedIn = true;
             var timeStamp = new CheckModel()
@@ -42,11 +42,11 @@ namespace Checkin.ViewModels
                 CheckedTime = DateTime.Now,
             };
             _contextItem.Checks?.Add(timeStamp);
-            await SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
+            SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
 
         }
 
-        private async void OnCheckoutClicked()
+        private void OnCheckoutClicked()
         {
             _contextItem.CheckedIn = false;
             var timeStamp = new CheckModel()
@@ -55,7 +55,7 @@ namespace Checkin.ViewModels
                 CheckedTime = DateTime.Now,
             };
             _contextItem.Checks?.Add(timeStamp);
-            await SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
+            SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
 
 
         }
