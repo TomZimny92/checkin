@@ -30,6 +30,7 @@ namespace Checkin.ViewModels
                     OnPropertyChanged(nameof(CurrentContextCheckedIn));
                     OnPropertyChanged(nameof(CurrentContextChecks));
                     OnPropertyChanged(nameof(CurrentContextIcon));
+                    OnPropertyChanged(nameof(CurrentSummaryResults));
                     OnPropertyChanged(nameof(CurrentCheckinButtonCommand));
                     OnPropertyChanged(nameof(CurrentCheckoutButtonCommand));
                     OnPropertyChanged(nameof(CurrentSummaryButtonCommand));
@@ -44,6 +45,8 @@ namespace Checkin.ViewModels
         public bool CurrentContextCheckedIn => SelectedContext.ContextCheckedIn;
         public List<CheckModel>? CurrentContextChecks => SelectedContext.ContextChecks;
         public string? CurrentContextIcon => SelectedContext.ContextIcon;
+        public string? CurrentSummaryResults => SelectedContext.SummaryResults;
+        public bool IsCurrentButtonEnabled => SelectedContext.IsButtonEnabled;
 
         public ICommand CurrentCheckinButtonCommand => SelectedContext.CheckinButtonCommand;
         public ICommand CurrentCheckoutButtonCommand => SelectedContext.CheckoutButtonCommand;
@@ -56,6 +59,7 @@ namespace Checkin.ViewModels
             SelectedContext = GetSelectedContext();
             ContextItems = GetAllContexts();
         }
+
 
         private ContextViewModel GetSelectedContext()
         {

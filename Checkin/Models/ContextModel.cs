@@ -13,5 +13,6 @@ namespace Checkin.Models
         public Boolean CheckedIn { get; set; }
         public List<CheckModel>? Checks { get; set; }
         public string? Icon { get; set; }
+        public string? Duration { get; set; }
     }
 }

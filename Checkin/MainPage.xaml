@@ -25,14 +25,20 @@
                     Style="{StaticResource Headline}"
                     SemanticProperties.HeadingLevel="Level1" />
 
+                <Label Text="{Binding CurrentSummaryResults}"
+                    Style="{StaticResource Headline}"
+                    SemanticProperties.HeadingLevel="Level1" />
+
                 <Button Text="Check IN"
                         Command="{Binding CurrentCheckinButtonCommand}"
+                        IsEnabled="{Binding IsCurrentButtonEnabled}"
                         HeightRequest="50"
                         BackgroundColor="Green"
                         TextColor="White" />
 
                 <Button Text="Check OUT"
                         Command="{Binding CurrentCheckoutButtonCommand}"
+                        IsEnabled="{Binding IsCurrentButtonEnabled}"
                         WidthRequest="200"
                         HeightRequest="50"
                         BackgroundColor="Red"

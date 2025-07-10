@@ -9,3 +9,5 @@ v17
 *.etag
 *.local
 *.user
+.vs
+.gitignore

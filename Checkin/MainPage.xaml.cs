@@ -11,7 +11,7 @@ namespace Checkin;
 public partial class MainPage : ContentPage
 {
     private IDispatcherTimer _timer;
-    public ContextModel CurrentContext {  get; set; }
+    //public ContextModel CurrentContext {  get; set; }
 
     public MainPage(BaseViewModel viewModel, IDispatcherTimer timer)
     {
