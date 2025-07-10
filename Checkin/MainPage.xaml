@@ -30,18 +30,21 @@
                     SemanticProperties.HeadingLevel="Level1" />
 
                 <Button Text="Check IN"
+                        x:Name="CheckinButton"
                         Command="{Binding CurrentCheckinButtonCommand}"
-                        IsEnabled="{Binding IsCurrentButtonEnabled}"
+                        IsEnabled="{Binding IsCurrentCheckinButtonEnabled}"
+                        WidthRequest="200"
                         HeightRequest="50"
-                        BackgroundColor="Green"
+                        BackgroundColor="{Binding CurrentCheckinButtonColor}"
                         TextColor="White" />
 
                 <Button Text="Check OUT"
+                        x:Name="CheckoutButton"
                         Command="{Binding CurrentCheckoutButtonCommand}"
-                        IsEnabled="{Binding IsCurrentButtonEnabled}"
+                        IsEnabled="{Binding IsCurrentCheckoutButtonEnabled}"
                         WidthRequest="200"
                         HeightRequest="50"
-                        BackgroundColor="Red"
+                        BackgroundColor="{Binding CurrentCheckoutButtonColor}"
                         TextColor="White" />
 
                 <Button Text="Summary"
@@ -49,6 +52,13 @@
                         WidthRequest="200"
                         HeightRequest="50"
                         BackgroundColor="PaleGoldenrod"
+                        TextColor="White" />
+
+                <Button Text="Reset"
+                        Command="{Binding CurrentContextResetCommand}"
+                        WidthRequest="200"
+                        HeightRequest="50"
+                        BackgroundColor="DarkSlateGray"
                         TextColor="White" />
 
             </VerticalStackLayout>

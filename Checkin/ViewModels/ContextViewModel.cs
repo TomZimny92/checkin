@@ -14,7 +14,20 @@ namespace Checkin.ViewModels
     public class ContextViewModel : BaseViewModel
     {
         private ContextModel _contextItem;
-        private bool _isButtonEnabled;
+        public ContextModel ContextItem
+        {
+            get => _contextItem;
+            set
+            {
+                if (_contextItem != value)
+                {
+                    _contextItem = value;
+                    OnPropertyChanged();
+                }
+            }
+                //SetProperty(ref _contextItem, value);
+        }
+        private bool _isButtonEnabled = true;
 
         public ContextViewModel(ContextModel contextModel)
         {
@@ -22,6 +35,7 @@ namespace Checkin.ViewModels
             CheckinButtonCommand = new Command(execute: () => { OnCheckinClicked(); });
             CheckoutButtonCommand = new Command(execute: () => { OnCheckoutClicked(); });
             SummaryButtonClicked = new Command(execute: () => { OnSummaryClicked(); });
+            ContextResetCommand = new Command(execute: () => { OnResetClicked(); });
         }
 
         public int ContextId => _contextItem.Id;
@@ -29,11 +43,16 @@ namespace Checkin.ViewModels
         public Boolean ContextCheckedIn => _contextItem.CheckedIn;
         public List<CheckModel>? ContextChecks => _contextItem.Checks;
         public string? ContextIcon => _contextItem.Icon;
-        public string? SummaryResults => _contextItem.Duration;  
+        public string? SummaryResults => _contextItem.Duration;
+        public bool IsCheckinButtonEnabled => _contextItem.CheckinButtonEnabled;
+        public bool IsCheckoutButtonEnabled => _contextItem.CheckoutButtonEnabled;
+        public string CheckinButtonColor => _contextItem.CheckinButtonColor;
+        public string CheckoutButtonColor => _contextItem.CheckoutButtonColor;
 
         public ICommand CheckinButtonCommand { get; private set; }
         public ICommand CheckoutButtonCommand { get; private set; }
         public ICommand SummaryButtonClicked { get; private set; }
+        public ICommand ContextResetCommand { get; private set; }
 
         public ICommand ToggleButtonAbility { get; private set; }
 
@@ -60,9 +79,13 @@ namespace Checkin.ViewModels
                 CheckedTime = DateTime.Now,
             };
             _contextItem.Checks?.Add(timeStamp);
-            SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
-            DisableButton("Checkin");
+            _contextItem.CheckinButtonEnabled = false;
+            _contextItem.CheckoutButtonEnabled = true;
+            _contextItem.CheckinButtonColor = "Gray";
+            _contextItem.CheckoutButtonColor = "Red";
             CalculateDuration();
+            SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
+            //DisableButton("Checkin");
 
         }
 
@@ -75,9 +98,13 @@ namespace Checkin.ViewModels
                 CheckedTime = DateTime.Now,
             };
             _contextItem.Checks?.Add(timeStamp);
-            SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
-            DisableButton("Checkout");
+            _contextItem.CheckinButtonEnabled = true;
+            _contextItem.CheckoutButtonEnabled = false;
+            _contextItem.CheckinButtonColor = "Green";
+            _contextItem.CheckoutButtonColor = "Gray";
             CalculateDuration();
+            SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
+            //DisableButton("Checkout");
 
         }
 
@@ -122,23 +149,46 @@ namespace Checkin.ViewModels
             if (_contextItem.CheckedIn && buttonName == "Checkin")
             {
                 IsButtonEnabled = false;
+
+                return;
             }
             if (_contextItem.CheckedIn && buttonName == "Checkout")
             {
                 IsButtonEnabled = true;
+                return;
             }
             if (!_contextItem.CheckedIn && buttonName == "Checkin")
             {
                 IsButtonEnabled = true;
+                return;
             }
             if (!_contextItem.CheckedIn && buttonName == "Checkout")
             {
                 IsButtonEnabled = false;
+                return;
             }
             else
             {
                 IsButtonEnabled = true;
             }
+        }
+
+        private void OnResetClicked()
+        {
+            _contextItem.Checks = [];
+            _contextItem.Duration = "";
+            _contextItem.CheckedIn = false;
+            _contextItem.CheckinButtonEnabled = true;
+            _contextItem.CheckoutButtonEnabled = false;
+            _contextItem.CheckinButtonColor = "Green";
+            _contextItem.CheckoutButtonColor = "Gray";
+            // dont' remove the whole thing. just the checks and duration
+            // instead, update the Storage with an updated object for that id
+            //SecureStorage.Default.Remove(_contextItem.Id.ToString());
+
+            SecureStorage.Default.SetAsync(_contextItem.Id.ToString(), JsonSerializer.Serialize(_contextItem));
+
+            // need to reset button settings
         }
     }
 }

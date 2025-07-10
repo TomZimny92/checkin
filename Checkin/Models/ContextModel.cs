@@ -14,5 +14,10 @@ namespace Checkin.Models
         public List<CheckModel>? Checks { get; set; }
         public string? Icon { get; set; }
         public string? Duration { get; set; }
+        public bool CheckinButtonEnabled { get; set;}
+        public bool CheckoutButtonEnabled { get; set; }
+        public string CheckinButtonColor { get; set; }
+        public string CheckoutButtonColor { get; set; }
+        
     }
 }

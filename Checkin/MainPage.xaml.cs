@@ -33,4 +33,20 @@ public partial class MainPage : ContentPage
         base.OnDisappearing();
         _timer.Stop();
     }
+
+    private void Checkin(object sender, EventArgs e)
+    {
+        CheckinButton.IsEnabled = false;
+        CheckoutButton.IsEnabled = true;
+        CheckinButton.BackgroundColor = Colors.Gray;
+        CheckoutButton.BackgroundColor = Colors.Red;
+    }
+
+    private void Checkout(object sender, EventArgs e)
+    {
+        CheckinButton.IsEnabled = true;
+        CheckoutButton.IsEnabled = false;
+        CheckinButton.BackgroundColor = Colors.Green;
+        CheckoutButton.BackgroundColor = Colors.Gray;
+    }
 }
