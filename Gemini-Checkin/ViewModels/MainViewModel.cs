@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -48,8 +49,9 @@ namespace Gemini_Checkin.ViewModels
 
         public MainViewModel()
         {
-            TimeEntries = new ObservableCollection<TimeEntry>();
-            TotalElapsedTime = "Total Elapsed Time: 00:00:00"; // Initial state
+            //TimeEntries = new ObservableCollection<TimeEntry>();
+            //TotalElapsedTime = "Total Elapsed Time: 00:00:00"; // Initial state
+            InitializeData();
 
             CheckinCommand = new Command(ExecuteCheckin, CanExecuteCheckin);
             CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
@@ -58,6 +60,52 @@ namespace Gemini_Checkin.ViewModels
 
             SetupClock();
             UpdateCommandStates(); // Initial command states
+        }
+
+        private async void InitializeData()
+        {
+            try
+            {
+                var timeEntries = await SecureStorage.Default.GetAsync("timeEntries");
+                if (timeEntries != null) 
+                { 
+                    var formattedTimeEntries = FormatStorageData(timeEntries);
+                    TimeEntries = formattedTimeEntries;
+                }
+
+                var totalElapsedTime = await SecureStorage.Default.GetAsync("totalElapsedTime");
+                if (totalElapsedTime != null)
+                {
+                    TotalElapsedTime = totalElapsedTime;
+
+                }
+
+                var isCheckedIn = await SecureStorage.Default.GetAsync("isCheckedIn");
+                if (isCheckedIn != null)
+                { 
+                    IsCheckedIn = Convert.ToBoolean(isCheckedIn);
+                }
+            }
+            catch { }
+        }
+
+        private ObservableCollection<TimeEntry> FormatStorageData(string storedData)
+        {
+            var cm = new ObservableCollection<TimeEntry>();
+            if (!string.IsNullOrEmpty(storedData))
+            {
+                cm = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(storedData);
+                if (cm == null)
+                {
+                    Console.WriteLine("Warning: Deserialized ContextModel is null. Returning new context.");
+                }
+                return cm;
+            }
+            else
+            {
+                Console.WriteLine("Warning: Stored data is empty or null. Returning new context.");
+                return cm;
+            }
         }
 
         private void SetupClock()
@@ -81,6 +129,8 @@ namespace Gemini_Checkin.ViewModels
             IsCheckedIn = true;
             TimeEntries.Add(new TimeEntry { CheckinTime = DateTime.Now, CheckoutTime = null });
             UpdateCommandStates();
+            SecureStorage.Default.SetAsync("timeEntries", JsonSerializer.Serialize(TimeEntries));
+            SecureStorage.Default.SetAsync("isCheckedIn", IsCheckedIn.ToString());
             App.Current.MainPage.DisplayAlert("Check-in", $"Checked in at {DateTime.Now:HH:mm:ss}", "OK");
         }
 
@@ -110,6 +160,8 @@ namespace Gemini_Checkin.ViewModels
 
             UpdateCommandStates();
             ExecuteShowSummary(); // Update summary immediately after checkout
+            SecureStorage.Default.SetAsync("timeEntries", JsonSerializer.Serialize(TimeEntries));
+            SecureStorage.Default.SetAsync("isCheckedIn", IsCheckedIn.ToString());
             App.Current.MainPage.DisplayAlert("Check-out", $"Checked out at {checkoutTime:HH:mm:ss}", "OK");
         }
 
@@ -134,6 +186,7 @@ namespace Gemini_Checkin.ViewModels
                 }
             }
             TotalElapsedTime = $"Total Elapsed Time: {total:hh\\:mm\\:ss}";
+            SecureStorage.Default.SetAsync("totalElapsedTime", TotalElapsedTime);
         }
 
         private void ExecuteReset()
@@ -142,6 +195,9 @@ namespace Gemini_Checkin.ViewModels
             IsCheckedIn = false;
             TotalElapsedTime = "Total Elapsed Time: 00:00:00";
             UpdateCommandStates();
+            SecureStorage.Default.SetAsync("timeEntries", JsonSerializer.Serialize(TimeEntries));
+            SecureStorage.Default.SetAsync("isCheckedIn", IsCheckedIn.ToString());
+            SecureStorage.Default.SetAsync("totalElapsedTime", TotalElapsedTime);
             App.Current.MainPage.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
         }
 
