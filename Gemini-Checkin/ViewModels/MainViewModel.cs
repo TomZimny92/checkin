@@ -72,6 +72,10 @@ namespace Gemini_Checkin.ViewModels
                     var formattedTimeEntries = FormatStorageData(timeEntries);
                     TimeEntries = formattedTimeEntries;
                 }
+                else
+                {
+                    TimeEntries = new ObservableCollection<TimeEntry>();
+                }
 
                 var totalElapsedTime = await SecureStorage.Default.GetAsync("totalElapsedTime");
                 if (totalElapsedTime != null)
@@ -79,11 +83,19 @@ namespace Gemini_Checkin.ViewModels
                     TotalElapsedTime = totalElapsedTime;
 
                 }
+                else 
+                {
+                    TotalElapsedTime = "Total Elapsed Time: 00:00:00";
+                }
 
                 var isCheckedIn = await SecureStorage.Default.GetAsync("isCheckedIn");
                 if (isCheckedIn != null)
                 { 
                     IsCheckedIn = Convert.ToBoolean(isCheckedIn);
+                }
+                else
+                {
+                    IsCheckedIn = false;
                 }
             }
             catch { }
