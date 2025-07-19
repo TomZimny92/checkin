@@ -1,4 +1,4 @@
-﻿using Gemini_Checkin.Models;
+﻿using Checkin.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace Gemini_Checkin.ViewModels
+namespace Checkin.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
@@ -16,7 +16,14 @@ namespace Gemini_Checkin.ViewModels
         public bool IsCheckedIn
         {
             get => _isCheckedIn;
-            set => SetProperty(ref _isCheckedIn, value);
+            set
+            {
+                if (SetProperty(ref _isCheckedIn, value))
+                {
+                    UpdateCommandStates();
+
+                }
+            }
         }
 
         private ObservableCollection<TimeEntry> _timeEntries;
@@ -59,7 +66,7 @@ namespace Gemini_Checkin.ViewModels
             ResetCommand = new Command(ExecuteReset);
 
             SetupClock();
-            UpdateCommandStates(); // Initial command states
+            //UpdateCommandStates(); // Initial command states
         }
 
         private async void InitializeData()
@@ -67,8 +74,8 @@ namespace Gemini_Checkin.ViewModels
             try
             {
                 var timeEntries = await SecureStorage.Default.GetAsync("timeEntries");
-                if (timeEntries != null) 
-                { 
+                if (timeEntries != null)
+                {
                     var formattedTimeEntries = FormatStorageData(timeEntries);
                     TimeEntries = formattedTimeEntries;
                 }
@@ -83,20 +90,22 @@ namespace Gemini_Checkin.ViewModels
                     TotalElapsedTime = totalElapsedTime;
 
                 }
-                else 
+                else
                 {
                     TotalElapsedTime = "Total Elapsed Time: 00:00:00";
                 }
 
                 var isCheckedIn = await SecureStorage.Default.GetAsync("isCheckedIn");
                 if (isCheckedIn != null)
-                { 
+                {
                     IsCheckedIn = Convert.ToBoolean(isCheckedIn);
                 }
                 else
                 {
                     IsCheckedIn = false;
+                    //UpdateCommandStates();
                 }
+
             }
             catch { }
         }

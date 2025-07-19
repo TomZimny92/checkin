@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace Gemini_Checkin
+namespace Checkin
 {
     [Application]
     public class MainApplication : MauiApplication

@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace Gemini_Checkin
+namespace Checkin
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

@@ -1,4 +1,4 @@
-﻿namespace Gemini_Checkin
+﻿namespace Checkin
 {
     public partial class AppShell : Shell
     {

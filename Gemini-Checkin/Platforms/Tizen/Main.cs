@@ -2,7 +2,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using System;
 
-namespace Gemini_Checkin
+namespace Checkin
 {
     internal class Program : MauiApplication
     {

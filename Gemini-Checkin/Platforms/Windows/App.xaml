@@ -1,8 +1,8 @@
 ﻿<maui:MauiWinUIApplication
-    x:Class="Gemini_Checkin.WinUI.App"
+    x:Class="Checkin.WinUI.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:maui="using:Microsoft.Maui"
-    xmlns:local="using:Gemini_Checkin.WinUI">
+    xmlns:local="using:Checkin.WinUI">
 
 </maui:MauiWinUIApplication>

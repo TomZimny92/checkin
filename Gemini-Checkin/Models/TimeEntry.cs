@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Gemini_Checkin.Models
+namespace Checkin.Models
 {
     public class TimeEntry
     {

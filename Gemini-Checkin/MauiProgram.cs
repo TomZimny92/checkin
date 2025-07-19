@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using CommunityToolkit.Maui;
 
-namespace Gemini_Checkin
+namespace Checkin
 {
     public static class MauiProgram
     {
@@ -9,6 +10,7 @@ namespace Gemini_Checkin
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -16,7 +18,7 @@ namespace Gemini_Checkin
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+    		builder.Logging.AddDebug();           
 #endif
 
             return builder.Build();

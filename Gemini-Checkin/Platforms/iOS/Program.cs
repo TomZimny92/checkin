@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace Gemini_Checkin
+namespace Checkin
 {
     public class Program
     {
