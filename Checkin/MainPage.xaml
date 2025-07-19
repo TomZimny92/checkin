@@ -1,103 +1,79 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:Checkin"
-             xmlns:vm="clr-namespace:Checkin.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="Checkin.MainPage"
-             Title="Checkin">
+             xmlns:viewmodels="clr-namespace:Checkin.ViewModels"
+             x:DataType="viewmodels:MainViewModel">
 
     <ContentPage.BindingContext>
-        <vm:MainPageViewModel />
+        <viewmodels:MainViewModel />
     </ContentPage.BindingContext>
+    
+    <ScrollView>
+        <VerticalStackLayout
+        Padding="20"
+        Spacing="20"
+        VerticalOptions="Center"
+        HorizontalOptions="Center">
 
-    <Grid RowDefinitions="Auto, *, Auto" BackgroundColor="FloralWhite">
-        <Border Grid.Row="1"
-                Margin="10"
-                Stroke="LightBlue"
-                StrokeThickness="1"
-                BackgroundColor="Beige"
-                Padding="20"
-                VerticalOptions="Fill">
-            <VerticalStackLayout Spacing="20" HorizontalOptions="Center" VerticalOptions="Center">
-                <Label
-                    x:Name="ClockDisplay"
-                    Style="{StaticResource Headline}"
-                    SemanticProperties.HeadingLevel="Level1" />
+            <Button Text="Preferences"
+                    BackgroundColor="Salmon"
+                    Command="{Binding PreferencesCommand}" />
+            
+            <Label Text="{Binding CurrentTime}"
+                   FontSize="48"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
 
-                <Label Text="{Binding CurrentSummaryResults}"
-                    Style="{StaticResource Headline}"
-                    SemanticProperties.HeadingLevel="Level1" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
+                <Button Text="Check In"
+                    Grid.Column="0"
+                    Command="{Binding CheckinCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button"
+                                 Binding="{Binding IsCheckedIn}"
+                                 Value="False">
+                            <Setter Property="BackgroundColor" Value="Green" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button"
+                                 Binding="{Binding IsCheckedIn}"
+                                 Value="True">
+                            <Setter Property="BackgroundColor" Value="Gray" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
 
-                <Button Text="Check IN"
-                        x:Name="CheckinButton"
-                        Command="{Binding CurrentCheckinButtonCommand}"
-                        IsEnabled="{Binding IsCurrentCheckinButtonEnabled}"
-                        WidthRequest="200"
-                        HeightRequest="50"
-                        BackgroundColor="{Binding CurrentCheckinButtonColor}"
-                        TextColor="White" />
+                <Button Text="Check Out"
+                    Grid.Column="1"
+                    Command="{Binding CheckoutCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button"
+                                 Binding="{Binding IsCheckedIn}"
+                                 Value="True">
+                            <Setter Property="BackgroundColor" Value="Red" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button"
+                                 Binding="{Binding IsCheckedIn}"
+                                 Value="False">
+                            <Setter Property="BackgroundColor" Value="Gray" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+            </Grid>
 
-                <Button Text="Check OUT"
-                        x:Name="CheckoutButton"
-                        Command="{Binding CurrentCheckoutButtonCommand}"
-                        IsEnabled="{Binding IsCurrentCheckoutButtonEnabled}"
-                        WidthRequest="200"
-                        HeightRequest="50"
-                        BackgroundColor="{Binding CurrentCheckoutButtonColor}"
-                        TextColor="White" />
+            <Button Text="Show Summary"
+                Command="{Binding ShowSummaryCommand}" />
 
-                <Button Text="Summary"
-                        Command="{Binding CurrentSummaryButtonCommand}"
-                        WidthRequest="200"
-                        HeightRequest="50"
-                        BackgroundColor="PaleGoldenrod"
-                        TextColor="White" />
+            <Label Text="{Binding TotalElapsedTime}"
+               FontSize="24"
+               HorizontalOptions="Center" />
 
-                <Button Text="Reset"
-                        Command="{Binding CurrentContextResetCommand}"
-                        WidthRequest="200"
-                        HeightRequest="50"
-                        BackgroundColor="DarkSlateGray"
-                        TextColor="White" />
+            <Button Text="Reset"
+                BackgroundColor="Orange"
+                Command="{Binding ResetCommand}" />
 
-            </VerticalStackLayout>
-        </Border>
+        </VerticalStackLayout>
+    </ScrollView>
 
-        <!--<Button Grid.Row="2"
-                Text="Add New Tab"
-                Command="{Binding AddTabCommand}"
-                Margin="20"
-                BackgroundColor="CadetBlue"
-                TextColor="White" />-->
-        
-        <ScrollView Orientation="Horizontal" Grid.Row="0" Margin="0,5">
-            <CollectionView ItemsSource="{Binding ContextItems}"
-                SelectedItem="{Binding SelectedContext, Mode=TwoWay}"
-                SelectionMode="Single">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Horizontal" ItemSpacing="5" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ContextViewModel">
-                        <Border Stroke="Gray"
-                            StrokeThickness="1"
-                            Padding="10,5"
-                            BackgroundColor="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem, Converter={StaticResource SelectedTabToBackgroundColorConverter}, ConverterParameter={Binding .}}"
-                            Margin="5,0"
-                            WidthRequest="120"
-                            HeightRequest="40"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center">   
-                        <Label Text="{Binding ContextName}"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center"
-                            FontAttributes="Bold"
-                            TextColor="{Binding Source={RelativeSource AncestorType={x:Type CollectionView}}, Path=SelectedItem, Converter={StaticResource SelectedTabToTextColorConverter}, ConverterParameter={Binding .}}" />
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </ScrollView>
-    </Grid>
 </ContentPage>

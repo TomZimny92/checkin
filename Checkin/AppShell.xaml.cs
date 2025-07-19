@@ -1,9 +1,10 @@
-﻿namespace Checkin;
-
-public partial class AppShell : Shell
+﻿namespace Checkin
 {
-    public AppShell()
+    public partial class AppShell : Shell
     {
-        InitializeComponent();
+        public AppShell()
+        {
+            InitializeComponent();
+        }
     }
 }

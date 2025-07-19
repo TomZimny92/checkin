@@ -1,30 +1,27 @@
-﻿using Checkin.Services;
-using Checkin.ViewModel;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using CommunityToolkit.Maui;
 
-namespace Checkin;
-
-public static class MauiProgram
+namespace Checkin
 {
-    public static MauiApp CreateMauiApp()
+    public static class MauiProgram
     {
-        var builder = MauiApp.CreateBuilder();
-        builder
-            .UseMauiApp<App>()
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });
+        public static MauiApp CreateMauiApp()
+        {
+            var builder = MauiApp.CreateBuilder();
+            builder
+                .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
+                .ConfigureFonts(fonts =>
+                {
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                });
 
 #if DEBUG
-        builder.Logging.AddDebug();
+    		builder.Logging.AddDebug();           
 #endif
-        builder.Services.AddSingleton<MainPage>();
-        builder.Services.AddSingleton<BaseViewModel>();
-        builder.Services.AddSingleton<IDispatcherTimer>((timer) => Application.Current.Dispatcher.CreateTimer());
-        builder.Services.AddSingleton<ISecureStorageService, SecureStorageService>();
 
-        return builder.Build();
+            return builder.Build();
+        }
     }
 }
