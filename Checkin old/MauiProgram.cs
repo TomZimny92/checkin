@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-//using CommunityToolkit.Maui;
+using CommunityToolkit.Maui;
 
 namespace Checkin
 {
@@ -10,7 +10,7 @@ namespace Checkin
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                //.UseMauiCommunityToolkit()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
