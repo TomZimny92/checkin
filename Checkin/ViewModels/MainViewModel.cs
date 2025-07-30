@@ -78,9 +78,9 @@ namespace Checkin.ViewModels
             CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
             ShowSummaryCommand = new Command(ExecuteShowSummary);
             ResetCommand = new Command(ExecuteReset);
-            PreferencesCommand = new Command(ExecutePreferences);
+            PreferencesCommand = new Command(async () => await ExecutePreferences());
 
-            await InitializeData();
+            InitializeData();
             SetupClock();
             //UpdateCommandStates(); // Initial command states
         }
@@ -98,7 +98,7 @@ namespace Checkin.ViewModels
                         TimeEntries.Clear();
                         TimeEntries = formattedTimeEntries;
                     }
-                    
+
                 }
                 else
                 {
@@ -137,7 +137,7 @@ namespace Checkin.ViewModels
                 }
 
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine($"some of the data failed to load: {ex}");
             }
@@ -263,24 +263,30 @@ namespace Checkin.ViewModels
         private async Task ExecutePreferences()
         {
             // show the modal
-            var preferencesPage = new PreferencesPage();
-            var preferencesViewModel = new PreferencesViewModel();
-            preferencesPage.BindingContext = preferencesViewModel;
-            
-            await Application.Current.MainPage.Navigation.PushModalAsync(preferencesPage);
-            var rate = SecureStorage.Default.GetAsync(HourlyRateKey);
-            if (rate != null)
+            try
             {
-                try
+                var preferencesPage = new PreferencesPage();
+                var preferencesViewModel = new PreferencesViewModel();
+                preferencesPage.BindingContext = preferencesViewModel;
+
+                await Application.Current.MainPage.Navigation.PushModalAsync(preferencesPage);
+                var rate = await SecureStorage.Default.GetAsync(HourlyRateKey);
+                if (double.TryParse(rate, out double loadedRate))
                 {
-                    var rateInt = int.Parse(rate);
-                    HourlyRate = rateInt;
+                    HourlyRate = loadedRate;
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine(ex.ToString());
+                    HourlyRate = 0.0;
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading hourly rate: {ex.Message}");
+                HourlyRate = 0.0;
+            }
+
+
         }
 
         private async Task SaveDataAsync()
