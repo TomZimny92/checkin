@@ -9,18 +9,18 @@
     <ContentPage.BindingContext>
         <viewmodels:MainViewModel />
     </ContentPage.BindingContext>
-    
+
     <ScrollView>
         <VerticalStackLayout
-        Padding="20"
-        Spacing="20"
-        VerticalOptions="Center"
-        HorizontalOptions="Center">
+            Padding="20"
+            Spacing="20"
+            VerticalOptions="Center"
+            HorizontalOptions="Center">
 
             <Button Text="Preferences"
                     BackgroundColor="Salmon"
                     Command="{Binding PreferencesCommand}" />
-            
+
             <Label Text="{Binding CurrentTime}"
                    FontSize="48"
                    FontAttributes="Bold"

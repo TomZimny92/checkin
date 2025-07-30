@@ -12,6 +12,13 @@ namespace Checkin.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
+
+        // SecureStorage Keys
+        private const string IsCheckedInKey = "IsCheckedInKey";
+        private const string TimeEntriesKey = "TimeEntriesKey";
+        private const string TotalElapsedTimeKey = "TotalElapsedTimeKey";
+        private const string HourlyRateKey = "HourlyRateKey";
+
         private bool _isCheckedIn;
         public bool IsCheckedIn
         {
@@ -47,10 +54,18 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _totalElapsedTime, value);
         }
 
+        private double _hourlyRate;
+        public double HourlyRate
+        {
+            get => _hourlyRate;
+            set => SetProperty(ref _hourlyRate, value);
+        }
+
         public ICommand CheckinCommand { get; }
         public ICommand CheckoutCommand { get; }
         public ICommand ShowSummaryCommand { get; }
         public ICommand ResetCommand { get; }
+        public ICommand PreferencesCommand { get; }
 
         private IDispatcherTimer _clockTimer;
 
@@ -58,34 +73,40 @@ namespace Checkin.ViewModels
         {
             //TimeEntries = new ObservableCollection<TimeEntry>();
             //TotalElapsedTime = "Total Elapsed Time: 00:00:00"; // Initial state
-            InitializeData();
 
             CheckinCommand = new Command(ExecuteCheckin, CanExecuteCheckin);
             CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
             ShowSummaryCommand = new Command(ExecuteShowSummary);
             ResetCommand = new Command(ExecuteReset);
+            PreferencesCommand = new Command(ExecutePreferences);
 
+            await InitializeData();
             SetupClock();
             //UpdateCommandStates(); // Initial command states
         }
 
-        private async void InitializeData()
+        private async Task InitializeData()
         {
             try
             {
-                var timeEntries = await SecureStorage.Default.GetAsync("timeEntries");
-                if (timeEntries != null)
+                var timeEntries = await SecureStorage.Default.GetAsync(TimeEntriesKey);
+                if (!string.IsNullOrEmpty(timeEntries))
                 {
                     var formattedTimeEntries = FormatStorageData(timeEntries);
-                    TimeEntries = formattedTimeEntries;
+                    if (formattedTimeEntries != null)
+                    {
+                        TimeEntries.Clear();
+                        TimeEntries = formattedTimeEntries;
+                    }
+                    
                 }
                 else
                 {
                     TimeEntries = new ObservableCollection<TimeEntry>();
                 }
 
-                var totalElapsedTime = await SecureStorage.Default.GetAsync("totalElapsedTime");
-                if (totalElapsedTime != null)
+                var totalElapsedTime = await SecureStorage.Default.GetAsync(TotalElapsedTimeKey);
+                if (!string.IsNullOrEmpty(totalElapsedTime))
                 {
                     TotalElapsedTime = totalElapsedTime;
 
@@ -95,22 +116,38 @@ namespace Checkin.ViewModels
                     TotalElapsedTime = "Total Elapsed Time: 00:00:00";
                 }
 
-                var isCheckedIn = await SecureStorage.Default.GetAsync("isCheckedIn");
-                if (isCheckedIn != null)
+                var isCheckedIn = await SecureStorage.Default.GetAsync(IsCheckedInKey);
+                if (bool.TryParse(isCheckedIn, out bool loadedIsCheckedIn))
                 {
-                    IsCheckedIn = Convert.ToBoolean(isCheckedIn);
+                    IsCheckedIn = loadedIsCheckedIn;
                 }
                 else
                 {
                     IsCheckedIn = false;
-                    //UpdateCommandStates();
+                }
+
+                var hourlyRate = await SecureStorage.Default.GetAsync(HourlyRateKey);
+                if (double.TryParse(hourlyRate, out double loadedRate))
+                {
+                    HourlyRate = loadedRate;
+                }
+                else
+                {
+                    HourlyRate = 0.0; // Default if not found or invalid
                 }
 
             }
-            catch { }
+            catch (Exception ex) 
+            {
+                Console.WriteLine($"some of the data failed to load: {ex}");
+            }
+            finally
+            {
+                UpdateCommandStates();
+            }
         }
 
-        private ObservableCollection<TimeEntry> FormatStorageData(string storedData)
+        private static ObservableCollection<TimeEntry> FormatStorageData(string storedData)
         {
             var cm = new ObservableCollection<TimeEntry>();
             if (!string.IsNullOrEmpty(storedData))
@@ -118,7 +155,7 @@ namespace Checkin.ViewModels
                 cm = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(storedData);
                 if (cm == null)
                 {
-                    Console.WriteLine("Warning: Deserialized ContextModel is null. Returning new context.");
+                    Console.WriteLine("Warning: Deserialized TimeEntry is null. Returning new context.");
                 }
                 return cm;
             }
@@ -131,6 +168,7 @@ namespace Checkin.ViewModels
 
         private void SetupClock()
         {
+            // probably need to have Timer dependently injected
             _clockTimer = Application.Current.Dispatcher.CreateTimer();
             _clockTimer.Interval = TimeSpan.FromSeconds(1);
             _clockTimer.Tick += (s, e) =>
@@ -150,9 +188,9 @@ namespace Checkin.ViewModels
             IsCheckedIn = true;
             TimeEntries.Add(new TimeEntry { CheckinTime = DateTime.Now, CheckoutTime = null });
             UpdateCommandStates();
-            SecureStorage.Default.SetAsync("timeEntries", JsonSerializer.Serialize(TimeEntries));
-            SecureStorage.Default.SetAsync("isCheckedIn", IsCheckedIn.ToString());
-            App.Current.MainPage.DisplayAlert("Check-in", $"Checked in at {DateTime.Now:HH:mm:ss}", "OK");
+            SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+            SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+            //App.Current.MainPage.DisplayAlert("Check-in", $"Checked in at {DateTime.Now:HH:mm:ss}", "OK");
         }
 
         private bool CanExecuteCheckin()
@@ -181,9 +219,9 @@ namespace Checkin.ViewModels
 
             UpdateCommandStates();
             ExecuteShowSummary(); // Update summary immediately after checkout
-            SecureStorage.Default.SetAsync("timeEntries", JsonSerializer.Serialize(TimeEntries));
-            SecureStorage.Default.SetAsync("isCheckedIn", IsCheckedIn.ToString());
-            App.Current.MainPage.DisplayAlert("Check-out", $"Checked out at {checkoutTime:HH:mm:ss}", "OK");
+            SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+            SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+            //App.Current.MainPage.DisplayAlert("Check-out", $"Checked out at {checkoutTime:HH:mm:ss}", "OK");
         }
 
         private bool CanExecuteCheckout()
@@ -207,7 +245,7 @@ namespace Checkin.ViewModels
                 }
             }
             TotalElapsedTime = $"Total Elapsed Time: {total:hh\\:mm\\:ss}";
-            SecureStorage.Default.SetAsync("totalElapsedTime", TotalElapsedTime);
+            SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
         }
 
         private void ExecuteReset()
@@ -216,10 +254,47 @@ namespace Checkin.ViewModels
             IsCheckedIn = false;
             TotalElapsedTime = "Total Elapsed Time: 00:00:00";
             UpdateCommandStates();
-            SecureStorage.Default.SetAsync("timeEntries", JsonSerializer.Serialize(TimeEntries));
-            SecureStorage.Default.SetAsync("isCheckedIn", IsCheckedIn.ToString());
-            SecureStorage.Default.SetAsync("totalElapsedTime", TotalElapsedTime);
-            App.Current.MainPage.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
+            SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+            SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+            SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
+            //App.Current.MainPage.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
+        }
+
+        private async Task ExecutePreferences()
+        {
+            // show the modal
+            var preferencesPage = new PreferencesPage();
+            var preferencesViewModel = new PreferencesViewModel();
+            preferencesPage.BindingContext = preferencesViewModel;
+            
+            await Application.Current.MainPage.Navigation.PushModalAsync(preferencesPage);
+            var rate = SecureStorage.Default.GetAsync(HourlyRateKey);
+            if (rate != null)
+            {
+                try
+                {
+                    var rateInt = int.Parse(rate);
+                    HourlyRate = rateInt;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+        }
+
+        private async Task SaveDataAsync()
+        {
+            try
+            {
+                await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+                await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+                await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
 
         private void UpdateCommandStates()
