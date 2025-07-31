@@ -65,7 +65,7 @@
             <Button Text="Show Summary"
                 Command="{Binding ShowSummaryCommand}" />
 
-            <Label Text="{Binding TotalElapsedTime}"
+            <Label Text="{Binding TotalElapsedTime, StringFormat='Total Elapsed Time: {0}'}"
                FontSize="24"
                HorizontalOptions="Center" />
 

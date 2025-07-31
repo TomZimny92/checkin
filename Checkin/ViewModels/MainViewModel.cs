@@ -18,6 +18,7 @@ namespace Checkin.ViewModels
         private const string TimeEntriesKey = "TimeEntriesKey";
         private const string TotalElapsedTimeKey = "TotalElapsedTimeKey";
         private const string HourlyRateKey = "HourlyRateKey";
+        private const string CalculatedResultKey = "CalculatedResultKey";
 
         private bool _isCheckedIn;
         public bool IsCheckedIn
@@ -61,6 +62,13 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _hourlyRate, value);
         }
 
+        private string _calculatedResult;
+        public string CalculatedResult
+        {
+            get => _calculatedResult;
+            set => SetProperty(ref _calculatedResult, value);
+        }
+
         public ICommand CheckinCommand { get; }
         public ICommand CheckoutCommand { get; }
         public ICommand ShowSummaryCommand { get; }
@@ -71,19 +79,14 @@ namespace Checkin.ViewModels
 
         public MainViewModel()
         {
-            //TimeEntries = new ObservableCollection<TimeEntry>();
-            //TotalElapsedTime = "Total Elapsed Time: 00:00:00"; // Initial state
-
             CheckinCommand = new Command(ExecuteCheckin, CanExecuteCheckin);
             CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
-            //ShowSummaryCommand = new Command(ExecuteShowSummary);
             ShowSummaryCommand = new Command(ExecuteShowResult);
             ResetCommand = new Command(ExecuteReset);
             PreferencesCommand = new Command(async () => await ExecutePreferences());
 
             _ = InitializeData();
             SetupClock();
-            //UpdateCommandStates(); // Initial command states
         }
 
         private async Task InitializeData()
@@ -96,10 +99,8 @@ namespace Checkin.ViewModels
                     var formattedTimeEntries = FormatStorageData(timeEntries);
                     if (formattedTimeEntries != null)
                     {
-                        //TimeEntries.Clear();
                         TimeEntries = formattedTimeEntries;
                     }
-
                 }
                 else
                 {
@@ -110,11 +111,10 @@ namespace Checkin.ViewModels
                 if (!string.IsNullOrEmpty(totalElapsedTime))
                 {
                     TotalElapsedTime = totalElapsedTime;
-
                 }
                 else
                 {
-                    TotalElapsedTime = "Total Elapsed Time: 00:00:00";
+                    TotalElapsedTime = "00:00:00";
                 }
 
                 var isCheckedIn = await SecureStorage.Default.GetAsync(IsCheckedInKey);
@@ -137,6 +137,15 @@ namespace Checkin.ViewModels
                     HourlyRate = 0.0; // Default if not found or invalid
                 }
 
+                var calculatedResult = await SecureStorage.Default.GetAsync(CalculatedResultKey);
+                if (!string.IsNullOrEmpty(calculatedResult))
+                {
+                    CalculatedResult = calculatedResult;
+                }
+                else
+                {
+                    CalculatedResult = "0";
+                }
             }
             catch (Exception ex)
             {
@@ -178,7 +187,8 @@ namespace Checkin.ViewModels
                 // Update summary continuously if checked in
                 if (IsCheckedIn)
                 {
-                    ExecuteShowSummary();
+                    CalculateElapsedTime();
+                    // also lively calculate Result, but I can't do it with DisplayAlert
                 }
             };
             _clockTimer.Start();
@@ -191,7 +201,6 @@ namespace Checkin.ViewModels
             UpdateCommandStates();
             SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
             SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-            //App.Current.MainPage.DisplayAlert("Check-in", $"Checked in at {DateTime.Now:HH:mm:ss}", "OK");
         }
 
         private bool CanExecuteCheckin()
@@ -214,15 +223,14 @@ namespace Checkin.ViewModels
             {
                 // Fallback: If somehow checkout is clicked without a check-in,
                 // add a placeholder entry.
-                // I don't like this. Change it.
+                // I don't like this. You're probably using it wrong. Here, let me show you.
                 TimeEntries.Add(new TimeEntry { CheckinTime = DateTime.MinValue, CheckoutTime = checkoutTime });
             }
 
             UpdateCommandStates();
-            ExecuteShowSummary(); // Update summary immediately after checkout
+            CalculateElapsedTime(); // Update summary immediately after checkout
             SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
             SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-            //App.Current.MainPage.DisplayAlert("Check-out", $"Checked out at {checkoutTime:HH:mm:ss}", "OK");
         }
 
         private bool CanExecuteCheckout()
@@ -230,7 +238,7 @@ namespace Checkin.ViewModels
             return IsCheckedIn;
         }
 
-        private void ExecuteShowSummary()
+        private void CalculateElapsedTime()
         {
             TimeSpan total = TimeSpan.Zero;
             foreach (var entry in TimeEntries)
@@ -245,29 +253,40 @@ namespace Checkin.ViewModels
                     total += (DateTime.Now - entry.CheckinTime);
                 }
             }
-            TotalElapsedTime = $"Total Elapsed Time: {total:hh\\:mm\\:ss}";
+            TotalElapsedTime = $"{total:hh\\:mm\\:ss}";
             SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
         }
 
         private void ExecuteShowResult()
         {
-            // HourlyRate * ElapsedTime
-            // TotalElapsedTime needs to be parsed to remove the leading string
+            DoTheMath();
+            SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
+            App.Current.MainPage.DisplayAlert("Result", $"You owe: ${CalculatedResult}", "Ugh");
+        }
+
+        private void DoTheMath()
+        {
             TimeSpan timeSpanElapsed = TimeSpan.Parse(TotalElapsedTime);
-            var result = HourlyRate * timeSpanElapsed;
-            App.Current.MainPage.DisplayAlert("Result", $"You owe: ${result}", "Ugh");
+            var totalTimeInMinutes = timeSpanElapsed.TotalMinutes;
+            var minutesRate = HourlyRate / 60;
+            CalculatedResult = Math.Round(totalTimeInMinutes * minutesRate, 2).ToString("F2");
+
+            // we shouldn't need to save this data every second. Save it when the Result button is clicked
+            //SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
         }
 
         private void ExecuteReset()
         {
             TimeEntries.Clear();
             IsCheckedIn = false;
-            TotalElapsedTime = "Total Elapsed Time: 00:00:00";
+            TotalElapsedTime = "00:00:00";
+            CalculatedResult = "0";
             UpdateCommandStates();
             SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
             SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
             SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
-            //App.Current.MainPage.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
+            SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
+            App.Current.MainPage.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
         }
 
         private async Task ExecutePreferences()
