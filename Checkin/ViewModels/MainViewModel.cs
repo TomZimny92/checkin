@@ -76,11 +76,12 @@ namespace Checkin.ViewModels
 
             CheckinCommand = new Command(ExecuteCheckin, CanExecuteCheckin);
             CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
-            ShowSummaryCommand = new Command(ExecuteShowSummary);
+            //ShowSummaryCommand = new Command(ExecuteShowSummary);
+            ShowSummaryCommand = new Command(ExecuteShowResult);
             ResetCommand = new Command(ExecuteReset);
             PreferencesCommand = new Command(async () => await ExecutePreferences());
 
-            InitializeData();
+            _ = InitializeData();
             SetupClock();
             //UpdateCommandStates(); // Initial command states
         }
@@ -95,7 +96,7 @@ namespace Checkin.ViewModels
                     var formattedTimeEntries = FormatStorageData(timeEntries);
                     if (formattedTimeEntries != null)
                     {
-                        TimeEntries.Clear();
+                        //TimeEntries.Clear();
                         TimeEntries = formattedTimeEntries;
                     }
 
@@ -248,6 +249,15 @@ namespace Checkin.ViewModels
             SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
         }
 
+        private void ExecuteShowResult()
+        {
+            // HourlyRate * ElapsedTime
+            // TotalElapsedTime needs to be parsed to remove the leading string
+            TimeSpan timeSpanElapsed = TimeSpan.Parse(TotalElapsedTime);
+            var result = HourlyRate * timeSpanElapsed;
+            App.Current.MainPage.DisplayAlert("Result", $"You owe: ${result}", "Ugh");
+        }
+
         private void ExecuteReset()
         {
             TimeEntries.Clear();
@@ -268,8 +278,12 @@ namespace Checkin.ViewModels
                 var preferencesPage = new PreferencesPage();
                 var preferencesViewModel = new PreferencesViewModel();
                 preferencesPage.BindingContext = preferencesViewModel;
-
-                await Application.Current.MainPage.Navigation.PushModalAsync(preferencesPage);
+                if (Application.Current != null)
+                {
+                    await Application.Current.Windows[0].Navigation.PushModalAsync(preferencesPage);
+                }
+                
+                //await Application.Current.MainPage.Navigation.PushModalAsync(preferencesPage); 
                 var rate = await SecureStorage.Default.GetAsync(HourlyRateKey);
                 if (double.TryParse(rate, out double loadedRate))
                 {

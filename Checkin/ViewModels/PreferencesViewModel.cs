@@ -9,8 +9,10 @@ namespace Checkin.ViewModels
 {
     public class PreferencesViewModel : BaseViewModel
     {
-        private int _hourlyRateInput;
-        public int HourlyRateInput
+        private const string HourlyRateKey = "HourlyRateKey";
+
+        private double _hourlyRateInput;
+        public double HourlyRateInput
         { 
             get => _hourlyRateInput; 
             set => SetProperty(ref _hourlyRateInput, value); 
@@ -21,24 +23,50 @@ namespace Checkin.ViewModels
 
         public PreferencesViewModel()
         {
-            SavePreferencesCommand = new Command(ExecuteSavePreferences);
-            CancelPreferencesCommand = new Command(ExecuteCancelPreferences);         
-            InitializePreferences();
+            SavePreferencesCommand = new Command(async () => await ExecuteSavePreferences());
+            CancelPreferencesCommand = new Command(async () => await ExecuteCancelPreferences());
+            _ = InitializePreferences();
         }
 
-        private void ExecuteSavePreferences()
+        private async Task ExecuteSavePreferences()
         {
-            Console.WriteLine("test");
+            try
+            {
+                if (HourlyRateInput != null && HourlyRateInput > 0)
+                {
+                    await SecureStorage.Default.SetAsync(HourlyRateKey, HourlyRateInput.ToString());
+                }
+
+                if (Application.Current != null)
+                {
+                    await Application.Current.Windows[0].Navigation.PopModalAsync();
+                }
+            }
+            catch (Exception ex) { Console.WriteLine("test"); }
         }
 
-        private void ExecuteCancelPreferences()
+        private async Task ExecuteCancelPreferences()
         {
-            Console.WriteLine("test");
+            if (Application.Current != null)
+            {
+                await Application.Current.Windows[0].Navigation.PopModalAsync();
+            }
         }
 
-        private void InitializePreferences()
+        private async Task InitializePreferences()
         {
-
+            try
+            {
+                var existingPreference = await SecureStorage.Default.GetAsync(HourlyRateKey);
+                if (double.TryParse(existingPreference, out double loadedPref))
+                {
+                    HourlyRateInput = loadedPref;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
     }

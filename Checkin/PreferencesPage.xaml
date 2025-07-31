@@ -3,9 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Checkin.PreferencesPage"
              xmlns:viewmodels="clr-namespace:Checkin.ViewModels"
-             x:DataType="viewmodels:PreferenceViewModel"
-             Title="Preferences"
-             ModalPresentationStyle="FormSheet" >
+             x:DataType="viewmodels:PreferencesViewModel"
+             Title="Preferences" >
     <VerticalStackLayout
         Padding="20"
         Spacing="15"
@@ -15,7 +14,7 @@
             Text="Enter Hourly Rate:"
             FontSize="20"
             FontAttributes="Bold" />
-        <Entry Text="{Binding HourlyRate}"
+        <Entry Text="{Binding HourlyRateInput}"
                Placeholder="example: 15.35"
                Keyboard="Numeric"
                HorizontalOptions="Center"
@@ -28,7 +27,7 @@
                       Margin="5" />
               <Button Text="Cancel"
                       Grid.Column="1"
-                      Command="{CancelPreferencesCommand}"
+                      Command="{Binding CancelPreferencesCommand}"
                       BackgroundColor="Red"
                       Margin="5" />
           </Grid>
