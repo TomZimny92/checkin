@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
+
 namespace Checkin.ViewModels
 {
     public class MainViewModel : BaseViewModel
