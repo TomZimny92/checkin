@@ -8,12 +8,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-
 namespace Checkin.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
-
         // SecureStorage Keys
         private const string IsCheckedInKey = "IsCheckedInKey";
         private const string TimeEntriesKey = "TimeEntriesKey";
@@ -258,11 +256,26 @@ namespace Checkin.ViewModels
             SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
         }
 
-        private void ExecuteShowResult()
+        private async Task ExecuteShowResult()
         {
-            DoTheMath();
-            SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
-            App.Current.MainPage.DisplayAlert("Result", $"You owe: ${CalculatedResult}", "Ugh");
+            try
+            {
+                var summaryPage = new SummaryPage();
+                var summaryViewModel = new SummaryViewModel();
+                summaryPage.BindingContext = summaryViewModel;
+
+                if (Application.Current != null)
+                {
+                    await Application.Current.Windows[0].Navigation.PushModalAsync(summaryPage);
+                }
+                DoTheMath();
+                // extract the dates from the timeentries to display as sheet
+                // might have to do that in the modal
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         private void DoTheMath()
@@ -319,8 +332,6 @@ namespace Checkin.ViewModels
                 Console.WriteLine($"Error loading hourly rate: {ex.Message}");
                 HourlyRate = 0.0;
             }
-
-
         }
 
         private async Task SaveDataAsync()

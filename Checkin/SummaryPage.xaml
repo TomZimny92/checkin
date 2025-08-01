@@ -4,10 +4,20 @@
              x:Class="Checkin.SummaryPage"
              xmlns:viewmodels="clr-namespace:Checkin.ViewModels"
              Title="SummaryPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <CollectionView ItemsSource="{Binding Products}">
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Grid Padding="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Label Text="{Binding Name}" Grid.Column="0" />
+                    <Label Text="{Binding Price, StringFormat='C'}" Grid.Column="1" HorizontalOptions="End" />
+                    <Label Text="{Binding Stock}" Grid.Column="2" HorizontalOptions="End" />
+                </Grid>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
 </ContentPage>
