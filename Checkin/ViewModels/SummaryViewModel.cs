@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Checkin.Models;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,35 +14,22 @@ namespace Checkin.ViewModels
         private const string CalculatedResultKey = "CalculatedResult";
         private const string TimeEntriesKey = "TimeEntriesKey";
 
-        private ObservableCollection<DateOnly> _checkinDates;
-        public ObservableCollection<DateOnly> CheckinDates
+
+        private string _calculatedResult;
+        public string CalculatedResult
         {
-            get => _checkinDates;
-            set => SetProperty(ref _checkinDates, value);
+            get => _calculatedResult;
+            set => SetProperty(ref _calculatedResult, value);
         }
 
-        private ObservableCollection<DateOnly> _checkoutDates;
-        public ObservableCollection<DateOnly> CheckoutDates
+        private ObservableCollection<TimeEntry> _summaryTimeEntries;
+        public ObservableCollection<TimeEntry> SummaryTimeEntries 
         {
-            get => _checkoutDates;
-            set => SetProperty(ref _checkoutDates, value);
+            get => _summaryTimeEntries;
+            set => SetProperty(ref _summaryTimeEntries, value);
         }
 
-        private ObservableCollection<TimeOnly> _checkinTimes;
-        public ObservableCollection<TimeOnly> CheckinTimes
-        {
-            get => _checkinTimes;
-            set => SetProperty(ref _checkinTimes, value);
-        }
-
-        private ObservableCollection<TimeOnly> _checkoutTimes;
-        public ObservableCollection<TimeOnly> CheckoutTimes
-        {
-            get => _checkoutTimes;
-            set => SetProperty(ref _checkoutTimes, value);
-        }
-
-        public SummaryViewModel()
+        public SummaryViewModel(string totalElapsedTime, double hourlyRate)
         {
             _ = PopulateData();
         }

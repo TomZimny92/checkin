@@ -16,8 +16,8 @@ namespace Checkin.ViewModels
         private const string IsCheckedInKey = "IsCheckedInKey";
         private const string TimeEntriesKey = "TimeEntriesKey";
         private const string TotalElapsedTimeKey = "TotalElapsedTimeKey";
-        private const string HourlyRateKey = "HourlyRateKey";
-        private const string CalculatedResultKey = "CalculatedResultKey";
+        private const string HourlyRateKey = "HourlyRateKey";// dont need here?
+        //private const string CalculatedResultKey = "CalculatedResultKey";
 
         private bool _isCheckedIn;
         public bool IsCheckedIn
@@ -61,13 +61,6 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _hourlyRate, value);
         }
 
-        private string _calculatedResult;
-        public string CalculatedResult
-        {
-            get => _calculatedResult;
-            set => SetProperty(ref _calculatedResult, value);
-        }
-
         public ICommand CheckinCommand { get; }
         public ICommand CheckoutCommand { get; }
         public ICommand ShowSummaryCommand { get; }
@@ -80,7 +73,7 @@ namespace Checkin.ViewModels
         {
             CheckinCommand = new Command(ExecuteCheckin, CanExecuteCheckin);
             CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
-            ShowSummaryCommand = new Command(ExecuteShowResult);
+            ShowSummaryCommand = new Command(async () => await ExecuteShowResult());
             ResetCommand = new Command(ExecuteReset);
             PreferencesCommand = new Command(async () => await ExecutePreferences());
 
@@ -136,15 +129,15 @@ namespace Checkin.ViewModels
                     HourlyRate = 0.0; // Default if not found or invalid
                 }
 
-                var calculatedResult = await SecureStorage.Default.GetAsync(CalculatedResultKey);
-                if (!string.IsNullOrEmpty(calculatedResult))
-                {
-                    CalculatedResult = calculatedResult;
-                }
-                else
-                {
-                    CalculatedResult = "0";
-                }
+                //var calculatedResult = await SecureStorage.Default.GetAsync(CalculatedResultKey);
+                //if (!string.IsNullOrEmpty(calculatedResult))
+                //{
+                //    CalculatedResult = calculatedResult;
+                //}
+                //else
+                //{
+                //    CalculatedResult = "0";
+                //}
             }
             catch (Exception ex)
             {
@@ -261,14 +254,14 @@ namespace Checkin.ViewModels
             try
             {
                 var summaryPage = new SummaryPage();
-                var summaryViewModel = new SummaryViewModel();
+                var summaryViewModel = new SummaryViewModel(TotalElapsedTime, HourlyRate);
                 summaryPage.BindingContext = summaryViewModel;
 
                 if (Application.Current != null)
                 {
                     await Application.Current.Windows[0].Navigation.PushModalAsync(summaryPage);
                 }
-                DoTheMath();
+                // DoTheMath(); moving this to SummaryPage. Don't need it here
                 // extract the dates from the timeentries to display as sheet
                 // might have to do that in the modal
             }
@@ -278,28 +271,19 @@ namespace Checkin.ViewModels
             }
         }
 
-        private void DoTheMath()
-        {
-            TimeSpan timeSpanElapsed = TimeSpan.Parse(TotalElapsedTime);
-            var totalTimeInMinutes = timeSpanElapsed.TotalMinutes;
-            var minutesRate = HourlyRate / 60;
-            CalculatedResult = Math.Round(totalTimeInMinutes * minutesRate, 2).ToString("F2");
 
-            // we shouldn't need to save this data every second. Save it when the Result button is clicked
-            //SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
-        }
 
         private void ExecuteReset()
         {
             TimeEntries.Clear();
             IsCheckedIn = false;
             TotalElapsedTime = "00:00:00";
-            CalculatedResult = "0";
+            //CalculatedResult = "0";
             UpdateCommandStates();
             SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
             SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
             SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
-            SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
+            //SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
             App.Current.MainPage.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
         }
 
