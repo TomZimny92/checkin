@@ -16,7 +16,7 @@ namespace Checkin.ViewModels
         private const string IsCheckedInKey = "IsCheckedInKey";
         private const string TimeEntriesKey = "TimeEntriesKey";
         private const string TotalElapsedTimeKey = "TotalElapsedTimeKey";
-        private const string HourlyRateKey = "HourlyRateKey";// dont need here?
+        // private const string HourlyRateKey = "HourlyRateKey";// dont need here?
         //private const string CalculatedResultKey = "CalculatedResultKey";
 
         private bool _isCheckedIn;
@@ -253,13 +253,24 @@ namespace Checkin.ViewModels
         {
             try
             {
-                var summaryPage = new SummaryPage();
-                var summaryViewModel = new SummaryViewModel(TotalElapsedTime, HourlyRate);
-                summaryPage.BindingContext = summaryViewModel;
-
-                if (Application.Current != null)
+                if (TotalElapsedTime != null)
                 {
-                    await Application.Current.Windows[0].Navigation.PushModalAsync(summaryPage);
+                    var summaryPage = new SummaryPage();
+                    var summaryViewModel = new SummaryViewModel(TotalElapsedTime, TimeEntries);
+                    summaryPage.BindingContext = summaryViewModel;
+
+                    if (Application.Current != null)
+                    {
+                        await Application.Current.Windows[0].Navigation.PushModalAsync(summaryPage);
+                    }
+                }
+                else
+                {
+                    if (App.Current != null)
+                    {
+                        App.Current.MainPage.DisplayAlert("Summary", "Elapsed Time not found. There's nothing to report.", "OK");
+                    }
+                    
                 }
                 // DoTheMath(); moving this to SummaryPage. Don't need it here
                 // extract the dates from the timeentries to display as sheet

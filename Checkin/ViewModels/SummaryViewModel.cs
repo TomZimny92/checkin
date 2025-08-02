@@ -10,9 +10,9 @@ namespace Checkin.ViewModels
 {
     public class SummaryViewModel : BaseViewModel
     {
-        private const string CheckSummaryKey = "CheckSummaryKey";
-        private const string CalculatedResultKey = "CalculatedResult";
-        private const string TimeEntriesKey = "TimeEntriesKey";
+        private const string HourlyRateKey = "HourlyRateKey";
+        //private const string CalculatedResultKey = "CalculatedResult"; pass through param
+        //private const string TimeEntriesKey = "TimeEntriesKey"; pass through param
 
 
         private string _calculatedResult;
@@ -29,36 +29,64 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _summaryTimeEntries, value);
         }
 
-        public SummaryViewModel(string totalElapsedTime, double hourlyRate)
+        private string _summaryElapsedTime;
+        public string SummaryElapsedTime
         {
-            _ = PopulateData();
+            get => _summaryElapsedTime;
+            set => SetProperty(ref _summaryElapsedTime, value);
+        }
+
+        private double _summaryHourlyRate;
+        public double SummaryHourlyRate
+        {
+            get => _summaryHourlyRate;
+            set => SetProperty(ref _summaryHourlyRate, value);
+        }
+
+
+
+        public SummaryViewModel(string totalElapsedTime, ObservableCollection<TimeEntry> timeEntries)
+        {
+            _summaryElapsedTime = totalElapsedTime;
+            _summaryTimeEntries = timeEntries;
+            _ = PopulateData(); // pulls data from SecureStorage
+            DoTheMath(); // calculates the result
+            FormatTimeEntryData();
         }
 
         private async Task PopulateData()
         {
             try
             {
-                var timeEntries = await SecureStorage.Default.GetAsync(TimeEntriesKey);
-                var calculatedResult = await SecureStorage.Default.GetAsync(CalculatedResultKey);
-
+                var storedHourlyRate = await SecureStorage.Default.GetAsync(HourlyRateKey);
+                if (double.TryParse(storedHourlyRate, out double rate))
+                {
+                    _summaryHourlyRate = rate;
+                }
                 // get values for checkin/checkout dates
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(ex);
             }
         }
 
         private void DoTheMath()
         {
             // pass this data throught the ctor
-            TimeSpan timeSpanElapsed = TimeSpan.Parse(TotalElapsedTime);
+            TimeSpan timeSpanElapsed = TimeSpan.Parse(_summaryElapsedTime);
             var totalTimeInMinutes = timeSpanElapsed.TotalMinutes;
-            var minutesRate = HourlyRate / 60;
+            var minutesRate = _summaryHourlyRate / 60;
             CalculatedResult = Math.Round(totalTimeInMinutes * minutesRate, 2).ToString("F2");
 
             // we shouldn't need to save this data every second. Save it when the Result button is clicked
             //SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
         }
+
+        private void FormatTimeEntryData()
+        {
+
+        }
+
     }
 }

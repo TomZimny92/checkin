@@ -62,6 +62,10 @@ namespace Checkin.ViewModels
                 {
                     HourlyRateInput = loadedPref;
                 }
+                else
+                {
+                    HourlyRateInput = 0.0;
+                }
             }
             catch (Exception ex)
             {

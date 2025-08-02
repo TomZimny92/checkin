@@ -3,21 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Checkin.SummaryPage"
              xmlns:viewmodels="clr-namespace:Checkin.ViewModels"
-             Title="SummaryPage">
-    <CollectionView ItemsSource="{Binding Products}">
-        <CollectionView.ItemTemplate>
-            <DataTemplate>
-                <Grid Padding="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Label Text="{Binding Name}" Grid.Column="0" />
-                    <Label Text="{Binding Price, StringFormat='C'}" Grid.Column="1" HorizontalOptions="End" />
-                    <Label Text="{Binding Stock}" Grid.Column="2" HorizontalOptions="End" />
-                </Grid>
-            </DataTemplate>
-        </CollectionView.ItemTemplate>
-    </CollectionView>
+             xmlns:models="clr-namespace:Checkin.Models"
+             x:DataType="viewmodels:SummaryViewModel"
+             Title="Summary">
+    <Grid RowDefinitions="Auto, *" Padding="20">
+        <HorizontalStackLayout Grid.Row="0" Spacing="20" Padding="0,0,0,10">
+            <Label Text="Start Time" FontAttributes="Bold" WidthRequest="150" HorizontalOptions="Start" />
+            <Label Text="End Time" FontAttributes="Bold" WidthRequest="150" HorizontalOptions="Start" />
+        </HorizontalStackLayout>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding SummaryTimeEntries}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:TimeEntry">
+                    <Grid ColumnDefinitions="*, *" Padding="0,5">
+                        <Label Grid.Column="0"
+                               Text="{Binding CheckinTime, StringFormat='{}{0:dd\\:mm\\:yyyy\\:hh\\:mm\\:ss}'}"
+                               HorizontalOptions="Start"
+                               VerticalOptions="Center" />
+                        <Label Grid.Column="1"
+                               Text="{Binding CheckoutTime, StringFormat='{}{0:hh\\:mm\\:ss}'}"
+                               HorizontalOptions="Start"
+                               VerticalOptions="Center" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 </ContentPage>
