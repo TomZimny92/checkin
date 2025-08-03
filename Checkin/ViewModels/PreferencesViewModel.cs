@@ -32,17 +32,20 @@ namespace Checkin.ViewModels
         {
             try
             {
-                if (HourlyRateInput != null && HourlyRateInput > 0)
+                if (HourlyRateInput > 0)
                 {
                     await SecureStorage.Default.SetAsync(HourlyRateKey, HourlyRateInput.ToString());
                 }
-
+                else
+                {
+                    await SecureStorage.Default.SetAsync(HourlyRateKey, "0.0");
+                }
                 if (Application.Current != null)
                 {
                     await Application.Current.Windows[0].Navigation.PopModalAsync();
                 }
             }
-            catch (Exception ex) { Console.WriteLine("test"); }
+            catch (Exception ex) { Console.WriteLine(ex); }
         }
 
         private async Task ExecuteCancelPreferences()

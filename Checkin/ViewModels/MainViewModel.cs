@@ -54,12 +54,12 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _totalElapsedTime, value);
         }
 
-        private double _hourlyRate;
-        public double HourlyRate
-        {
-            get => _hourlyRate;
-            set => SetProperty(ref _hourlyRate, value);
-        }
+        //private double _hourlyRate;
+        //public double HourlyRate
+        //{
+        //    get => _hourlyRate;
+        //    set => SetProperty(ref _hourlyRate, value);
+        //}
 
         public ICommand CheckinCommand { get; }
         public ICommand CheckoutCommand { get; }
@@ -119,15 +119,15 @@ namespace Checkin.ViewModels
                     IsCheckedIn = false;
                 }
 
-                var hourlyRate = await SecureStorage.Default.GetAsync(HourlyRateKey);
-                if (double.TryParse(hourlyRate, out double loadedRate))
-                {
-                    HourlyRate = loadedRate;
-                }
-                else
-                {
-                    HourlyRate = 0.0; // Default if not found or invalid
-                }
+                //var hourlyRate = await SecureStorage.Default.GetAsync(HourlyRateKey);
+                //if (double.TryParse(hourlyRate, out double loadedRate))
+                //{
+                //    HourlyRate = loadedRate;
+                //}
+                //else
+                //{
+                //    HourlyRate = 0.0; // Default if not found or invalid
+                //}
 
                 //var calculatedResult = await SecureStorage.Default.GetAsync(CalculatedResultKey);
                 //if (!string.IsNullOrEmpty(calculatedResult))
@@ -312,20 +312,20 @@ namespace Checkin.ViewModels
                 }
                 
                 //await Application.Current.MainPage.Navigation.PushModalAsync(preferencesPage); 
-                var rate = await SecureStorage.Default.GetAsync(HourlyRateKey);
-                if (double.TryParse(rate, out double loadedRate))
-                {
-                    HourlyRate = loadedRate;
-                }
-                else
-                {
-                    HourlyRate = 0.0;
-                }
+                //var rate = await SecureStorage.Default.GetAsync(HourlyRateKey);
+                //if (double.TryParse(rate, out double loadedRate))
+                //{
+                //    HourlyRate = loadedRate;
+                //}
+                //else
+                //{
+                //    HourlyRate = 0.0;
+                //}
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading hourly rate: {ex.Message}");
-                HourlyRate = 0.0;
+                //HourlyRate = 0.0;
             }
         }
 
