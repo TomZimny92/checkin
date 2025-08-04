@@ -12,7 +12,7 @@
 
     <ScrollView>
         <VerticalStackLayout
-            Padding="20"
+            Padding="45"
             Spacing="20"
             VerticalOptions="Center"
             HorizontalOptions="Center">
@@ -34,7 +34,7 @@
                         <DataTrigger TargetType="Button"
                                  Binding="{Binding IsCheckedIn}"
                                  Value="False">
-                            <Setter Property="BackgroundColor" Value="Green" />
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=Green, Dark=Red}" />
                         </DataTrigger>
                         <DataTrigger TargetType="Button"
                                  Binding="{Binding IsCheckedIn}"
