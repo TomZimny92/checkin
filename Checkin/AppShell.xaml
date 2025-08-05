@@ -7,7 +7,7 @@
     Title="Checkin">
 
     <ShellContent
-        Title="Home"
+        Title="Checkin"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

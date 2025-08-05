@@ -6,27 +6,49 @@
              xmlns:models="clr-namespace:Checkin.Models"
              x:DataType="viewmodels:SummaryViewModel"
              Title="Summary">
-    <Grid RowDefinitions="Auto, *" HorizontalOptions="Center" VerticalOptions="Center" Padding="30" RowSpacing="20">
-        <Border Grid.Row="0" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 5" Padding="15,10" BackgroundColor="#E0E0E0">
-            <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
-                <Label Grid.Column="0" Text="Start Timestamp" FontAttributes="Bold" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center"/>
-                <Label Grid.Column="1" Text="End Timestamp" FontAttributes="Bold" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center"/>
-            </Grid>
-        </Border>
-        <CollectionView Grid.Row="1" ItemsSource="{Binding SummaryTimeEntries}" SelectionMode="None" Margin="0,0,0,0">
-            <CollectionView.ItemsLayout>
-                <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
-            </CollectionView.ItemsLayout>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:TimeEntry">
-                    <Border Stroke="#DDDDDD" StrokeShape="RoundRectangle 10,10,10,10" Padding="15" Margin="0">
-                        <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
-                            <Label Grid.Column="0" Text="{Binding CheckinTime, StringFormat='{}{0:MM/dd/yyyy \'at\' hh:mm:ss tt}'}" HorizontalOptions="Center" VerticalOptions="Center" FontSize="14" TextColor="#333333"/>
-                            <Label Grid.Column="1" Text="{Binding CheckoutTime, StringFormat='{}{0:MM/dd/yyyy \'at\' hh:mm:ss tt}'}" HorizontalOptions="Center" VerticalOptions="Center" FontSize="14" TextColor="#333333"/>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
-    </Grid>
+    <VerticalStackLayout>
+        <HorizontalStackLayout>
+            <Label  Text="{Binding SummaryElapsedTime, StringFormat='{0} at '}" 
+                    TextColor="Black"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    Padding="10" />  
+            <Label Text="{Binding SummaryHourlyRate, StringFormat=' ${0}'}" 
+                   TextColor="x:KeyPrimary"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   Padding="10"/>
+        </HorizontalStackLayout>
+        <Label Text="{Binding CalculatedResult, StringFormat='Total: ${0}'}" 
+               TextColor="Green"
+               FontSize="24"
+               FontAttributes="Bold"
+               Padding="10" />
+
+        <Grid RowDefinitions="Auto, *" HorizontalOptions="Center" VerticalOptions="Center" Padding="30" RowSpacing="20">
+            <Border Grid.Row="0" Stroke="#CCCCCC" StrokeThickness="1" StrokeShape="RoundRectangle 5" Padding="15,10" BackgroundColor="#E0E0E0">
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
+                    <Label Grid.Column="0" Text="Start Timestamp" FontAttributes="Bold" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center"/>
+                    <Label Grid.Column="1" Text="End Timestamp" FontAttributes="Bold" FontSize="16" HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Grid>
+            </Border>
+            <CollectionView Grid.Row="1" ItemsSource="{Binding SummaryTimeEntries}" SelectionMode="None" Margin="0,0,0,0">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="10"/>
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:TimeEntry">
+                        <Border Stroke="#DDDDDD" StrokeShape="RoundRectangle 10,10,10,10" Padding="15" Margin="0">
+                            <Grid ColumnDefinitions="*, *" ColumnSpacing="20">
+                                <Label Grid.Column="0" Text="{Binding CheckinTime, StringFormat='{}{0:MM/dd/yyyy \'at\' hh:mm:ss tt}'}" HorizontalOptions="Center" VerticalOptions="Center" FontSize="14" TextColor="#333333"/>
+                                <Label Grid.Column="1" Text="{Binding CheckoutTime, StringFormat='{}{0:MM/dd/yyyy \'at\' hh:mm:ss tt}'}" HorizontalOptions="Center" VerticalOptions="Center" FontSize="14" TextColor="#333333"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+        <Button Text="Back" Command="{Binding CloseSummaryCommand}" />
+    </VerticalStackLayout>
+
 </ContentPage>

@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Checkin.ViewModels
 {
@@ -43,15 +44,14 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _summaryHourlyRate, value);
         }
 
-
+        public ICommand CloseSummaryCommand { get; }
 
         public SummaryViewModel(string totalElapsedTime, ObservableCollection<TimeEntry> timeEntries)
         {
             _summaryElapsedTime = totalElapsedTime;
             _summaryTimeEntries = timeEntries;
+            CloseSummaryCommand = new Command(async () => await ExecuteCloseSummary());
             _ = PopulateData(); // pulls data from SecureStorage
-            DoTheMath(); // calculates the result
-            FormatTimeEntryData();
         }
 
         private async Task PopulateData()
@@ -59,6 +59,7 @@ namespace Checkin.ViewModels
             try
             {
                 var storedHourlyRate = await SecureStorage.Default.GetAsync(HourlyRateKey);
+
                 if (double.TryParse(storedHourlyRate, out double rate))
                 {
                     _summaryHourlyRate = rate;
@@ -68,6 +69,11 @@ namespace Checkin.ViewModels
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+            }
+            finally
+            {
+                DoTheMath(); // calculates the result
+                FormatTimeEntryData();
             }
         }
 
@@ -81,6 +87,22 @@ namespace Checkin.ViewModels
 
             // we shouldn't need to save this data every second. Save it when the Result button is clicked
             //SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
+        }
+
+        private async Task ExecuteCloseSummary()
+        {
+            try
+            {
+                if (App.Current != null)
+                {
+                    await App.Current.Windows[0].Navigation.PopModalAsync();
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         private void FormatTimeEntryData()
