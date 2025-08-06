@@ -21,10 +21,7 @@
                     BackgroundColor="Salmon"
                     Command="{Binding PreferencesCommand}" />
 
-            <Label Text="{Binding CurrentTime}"
-                   FontSize="48"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center" />
+            <Label Style="{StaticResource Big}"  Text="{Binding CurrentTime}" />
 
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto">
                 <Button Text="Check In"
@@ -65,9 +62,7 @@
             <Button Text="Show Summary"
                 Command="{Binding ShowSummaryCommand}" />
 
-            <Label Text="{Binding TotalElapsedTime, StringFormat='Total Elapsed Time: {0}'}"
-               FontSize="24"
-               HorizontalOptions="Center" />
+            <Label Style="{StaticResource Medium}" Text="{Binding TotalElapsedTime, StringFormat='Total Elapsed Time: {0}'}" />
 
             <Button Text="Reset"
                 BackgroundColor="Orange"

@@ -14,7 +14,7 @@
                     FontAttributes="Bold"
                     Padding="10" />  
             <Label Text="{Binding SummaryHourlyRate, StringFormat=' ${0}'}" 
-                   TextColor="x:KeyPrimary"
+                   TextColor="Wheat"
                    FontSize="24"
                    FontAttributes="Bold"
                    Padding="10"/>
