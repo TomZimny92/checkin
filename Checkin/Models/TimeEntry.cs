@@ -22,5 +22,14 @@ namespace Checkin.Models
                 return TimeSpan.Zero; // Or handle as an ongoing session if needed elsewhere
             }
         }
+
+        public TimeEntry GetDefault()
+        { // can possibly use for null-safety
+            return new TimeEntry
+            {
+                CheckinTime = default,
+                CheckoutTime = default,
+            };
+        }
     }
 }

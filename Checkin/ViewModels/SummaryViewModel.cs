@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace Checkin.ViewModels
 {
@@ -16,8 +17,8 @@ namespace Checkin.ViewModels
         //private const string TimeEntriesKey = "TimeEntriesKey"; pass through param
 
 
-        private string _calculatedResult;
-        public string CalculatedResult
+        private string? _calculatedResult;
+        public string? CalculatedResult
         {
             get => _calculatedResult;
             set => SetProperty(ref _calculatedResult, value);
