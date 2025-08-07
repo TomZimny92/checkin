@@ -20,7 +20,7 @@ namespace Checkin.ViewModels
         private string? _calculatedResult;
         public string? CalculatedResult
         {
-            get => _calculatedResult;
+            get => (_calculatedResult ??= "");
             set => SetProperty(ref _calculatedResult, value);
         }
 
