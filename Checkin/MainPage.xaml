@@ -18,7 +18,7 @@
             HorizontalOptions="Center">
 
             <ImageButton Style="{StaticResource SecondaryImageButton}"
-                         Source="settings-icon-icons8.png"
+                         Source="settings_icon_icons8.png"
                          Command="{Binding PreferencesCommand}" />
             <!--<Button Text="Preferences"
                     Command="{Binding PreferencesCommand}" />-->
