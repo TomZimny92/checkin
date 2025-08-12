@@ -11,46 +11,49 @@
     </ContentPage.BindingContext>
 
     <ScrollView>
-        <Grid RowDefinitions="Auto, Auto, Auto, Auto"
-          ColumnDefinitions="*, Auto, *"
-          RowSpacing="10"
-          ColumnSpacing="10">
+        <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="*, Auto, *" RowSpacing="10" ColumnSpacing="10" Margin="20" >
+            <Label Text="{Binding CurrentTime}" Style="{StaticResource Big}" Grid.Row="0" Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center"/>
+            <ImageButton Style="{StaticResource SecondaryImageButton}" Source="settings_icon_icons8.png" Command="{Binding PreferencesCommand}" Grid.Row="0" Grid.Column="2" HorizontalOptions="End"/>
+            <HorizontalStackLayout Grid.Row="1" Grid.ColumnSpan="3" HorizontalOptions="Center" Spacing="10">
+                <Button Text="Check In"
+                        Style="{StaticResource PrimaryButton}"
+                        Grid.Column="0"
+                        Command="{Binding CheckinCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button"
+                                     Binding="{Binding IsCheckedIn}"
+                                     Value="False">
+                            <!--<Setter Property="BackgroundColor" Value="{AppThemeBinding Light=Green, Dark=Red}" />-->
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button"
+                                     Binding="{Binding IsCheckedIn}"
+                                     Value="True">
+                            <Setter Property="BackgroundColor" Value="Gray" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
 
-            <Label Text="Top Label"
-               Grid.Row="0"
-               Grid.Column="1"
-               HorizontalOptions="Center"
-               VerticalOptions="Center" />
-
-            <Button Text="Button 1"
-                Grid.Row="0"
-                Grid.Column="2"
-                HorizontalOptions="End" />
-
-            <HorizontalStackLayout Grid.Row="1"
-                               Grid.ColumnSpan="3"
-                               HorizontalOptions="Center"
-                               Spacing="10">
-                <Button Text="Button 2" />
-                <Button Text="Button 3" />
+                <Button Text="Check Out"
+                        Style="{StaticResource PrimaryButton}"
+                        Grid.Column="1"
+                        Command="{Binding CheckoutCommand}">
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button"
+                                     Binding="{Binding IsCheckedIn}"
+                                     Value="True">
+                            <!--<Setter Property="BackgroundColor" Value="Red" />-->
+                        </DataTrigger>
+                        <DataTrigger TargetType="Button"
+                                     Binding="{Binding IsCheckedIn}"
+                                     Value="False">
+                            <Setter Property="BackgroundColor" Value="Gray" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
             </HorizontalStackLayout>
-
-            <Button Text="Button 4"
-                Grid.Row="2"
-                Grid.Column="1"
-                HorizontalOptions="Center" />
-
-            <Label Text="Bottom Label"
-               Grid.Row="3"
-               Grid.Column="1"
-               HorizontalOptions="Center"
-               VerticalOptions="Center" />
-
-            <Button Text="Button 5"
-                Grid.Row="3"
-                Grid.Column="2"
-                HorizontalOptions="End" />
-
+            <Button Text="Summary" Style="{StaticResource PrimaryButton}" Command="{Binding ShowSummaryCommand}" HeightRequest="50" WidthRequest="200" Grid.Row="2" Grid.Column="1" HorizontalOptions="Center"/>
+            <Label Text="{Binding TotalElapsedTime, StringFormat='Total Elapsed Time: {0}'}" Style="{StaticResource Medium}" Grid.Row="3" Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center"/>
+            <ImageButton Source="reset_icon_icons8.png" Style="{StaticResource SecondaryImageButton}" Command="{Binding ResetCommand}" Grid.Row="3" Grid.Column="2" HorizontalOptions="End"/>
         </Grid>
         <!--<FlexLayout
             Padding="45"
@@ -60,13 +63,13 @@
             HorizontalOptions="Center">
 
             <HorizontalStackLayout>
-                --><!--<Button Text="Preferences"
-                        Command="{Binding PreferencesCommand}" />--><!--
+                <Button Text="Preferences"
+                        Command="{Binding PreferencesCommand}" />
 
                 <Label Text="{Binding CurrentTime}"
                        Style="{StaticResource Big}"
                         />
-                
+
                 <ImageButton Style="{StaticResource SecondaryImageButton}"
                          
                              Source="settings_icon_icons8.png"
@@ -83,12 +86,12 @@
                         <DataTrigger TargetType="Button"
                                      Binding="{Binding IsCheckedIn}"
                                      Value="False">
-                            --><!--<Setter Property="BackgroundColor" Value="{AppThemeBinding Light=Green, Dark=Red}" />--><!--
+                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=Green, Dark=Red}" />
                         </DataTrigger>
                         <DataTrigger TargetType="Button"
                                      Binding="{Binding IsCheckedIn}"
                                      Value="True">
-                            --><!--<Setter Property="BackgroundColor" Value="Gray" />--><!--
+                            <Setter Property="BackgroundColor" Value="Gray" />
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
@@ -101,12 +104,12 @@
                         <DataTrigger TargetType="Button"
                                      Binding="{Binding IsCheckedIn}"
                                      Value="True">
-                            --><!--<Setter Property="BackgroundColor" Value="Red" />--><!--
+                            <Setter Property="BackgroundColor" Value="Red" />
                         </DataTrigger>
                         <DataTrigger TargetType="Button"
                                      Binding="{Binding IsCheckedIn}"
                                      Value="False">
-                            --><!--<Setter Property="BackgroundColor" Value="Gray" />--><!--
+                            <Setter Property="BackgroundColor" Value="Gray" />
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
@@ -124,9 +127,6 @@
                         Style="{StaticResource SecondaryButton}"
                         Command="{Binding ResetCommand}" />
             </HorizontalStackLayout>
-
-
         </FlexLayout>-->
     </ScrollView>
-
 </ContentPage>
