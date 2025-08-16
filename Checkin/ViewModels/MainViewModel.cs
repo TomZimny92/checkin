@@ -7,11 +7,14 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
 
 namespace Checkin.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
+        private readonly ILogger<MainViewModel> _logger;
+
         // SecureStorage Keys
         private const string IsCheckedInKey = "IsCheckedInKey";
         private const string TimeEntriesKey = "TimeEntriesKey";
@@ -101,6 +104,7 @@ namespace Checkin.ViewModels
                 {
                     TotalElapsedTime = "00:00:00";
                 }
+                _logger.LogInformation(TotalElapsedTime.ToString());
 
                 var isCheckedIn = await SecureStorage.Default.GetAsync(IsCheckedInKey);
                 if (bool.TryParse(isCheckedIn, out bool loadedIsCheckedIn))
