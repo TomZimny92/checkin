@@ -26,6 +26,10 @@ namespace Checkin
 
             IServiceCollection services = builder.Services;
 
+
+	    Console.WriteLine("the dotnet compiler worked!");
+
+
             services.AddSerilog(
                 new LoggerConfiguration()
                     .WriteTo.File(Path.Combine(FileSystem.Current.AppDataDirectory, "MainViewModel-log.txt"), rollingInterval: RollingInterval.Month)
