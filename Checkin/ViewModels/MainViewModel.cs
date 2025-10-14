@@ -265,13 +265,36 @@ namespace Checkin.ViewModels
                         total += (DateTime.Now - entry.CheckinTime);
                     }
                 }
-                TotalElapsedTime = $"{total:hh\\:mm\\:ss}";
+
+                TotalElapsedTime = FormatElapsedTime(total);
                 SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
             }
             else
             {
                 throw new NullReferenceException();
             }
+        }
+
+        private string FormatElapsedTime(TimeSpan time)
+        {
+            var sbHours = new StringBuilder((time.Days * 24 + time.Hours).ToString());
+            var sbMinutes = new StringBuilder(time.Minutes.ToString());
+            var sbSeconds = new StringBuilder(time.Seconds.ToString());
+
+            if (time.Hours < 10)
+            {
+                sbHours.Insert(0, "0");
+            }                 
+            if (time.Minutes < 10)
+            {
+                sbMinutes.Insert(0, "0");
+            }
+            if (time.Seconds < 10)
+            {
+                sbSeconds.Insert(0, "0");
+            }
+            var totalTime = $"{sbHours}:{sbMinutes}:{sbSeconds}";
+            return totalTime;
         }
 
         private async Task ExecuteShowResult()
