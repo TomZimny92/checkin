@@ -51,8 +51,8 @@
                     </Button.Triggers>
                 </Button>
             </HorizontalStackLayout>
-            <HorizontalStackLayout>
-                <Button Text="Manual Entry" Style="{StaticResource PrimaryButton}" HeightRequest="50" WidthRequest="200" Grid.Row="2" Grid.Column="1" HorizontalOptions="Center" />
+            <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="3" HorizontalOptions="Center" Spacing="10">
+                <Button Text="Manual Entry" Style="{StaticResource PrimaryButton}" Command="{Binding ShowManualEntry}" HeightRequest="50" WidthRequest="200" Grid.Row="2" Grid.Column="1" HorizontalOptions="Center" />
                 <Button Text="Summary" Style="{StaticResource PrimaryButton}" Command="{Binding ShowSummaryCommand}" HeightRequest="50" WidthRequest="200" Grid.Row="2" Grid.Column="2" HorizontalOptions="Center"/>
             </HorizontalStackLayout>
             <Label Text="{Binding TotalElapsedTime, StringFormat='Total Elapsed Time: {0}'}" Style="{StaticResource Medium}" Grid.Row="3" Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center"/>
