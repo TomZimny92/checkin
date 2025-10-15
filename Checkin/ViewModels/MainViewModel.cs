@@ -31,7 +31,19 @@ namespace Checkin.ViewModels
                 if (SetProperty(ref _isCheckedIn, value))
                 {
                     UpdateCommandStates();
+                }
+            }
+        }
 
+        private bool _showManualEntry;
+        public bool ShowManualEntry
+        {
+            get => _showManualEntry;
+            set
+            {
+                if (SetProperty(ref _showManualEntry, value))
+                {
+                    UpdateCommandStates();
                 }
             }
         }
@@ -49,7 +61,7 @@ namespace Checkin.ViewModels
             get => _currentTime;
             set => SetProperty(ref _currentTime, value);
         }
-
+        
         private string? _totalElapsedTime;
         public string? TotalElapsedTime
         {
@@ -60,6 +72,8 @@ namespace Checkin.ViewModels
         public ICommand CheckinCommand { get; }
         public ICommand CheckoutCommand { get; }
         public ICommand ShowSummaryCommand { get; }
+        public ICommand ShowManualEntryCommand { get; }
+        public ICommand SaveManualEntryCommand { get; }
         public ICommand ResetCommand { get; }
         public ICommand PreferencesCommand { get; }
 
@@ -70,6 +84,8 @@ namespace Checkin.ViewModels
             CheckinCommand = new Command(ExecuteCheckin, CanExecuteCheckin);
             CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
             ShowSummaryCommand = new Command(async () => await ExecuteShowResult());
+            ShowManualEntryCommand = new Command(ExecuteShowManualEntry);
+            SaveManualEntryCommand = new Command(async () => await ExecuteSaveManualEntry());
             ResetCommand = new Command(ExecuteReset);
             PreferencesCommand = new Command(async () => await ExecutePreferences());
 
@@ -326,7 +342,19 @@ namespace Checkin.ViewModels
             }
         }
 
+        private void ExecuteShowManualEntry()
+        {
+            ShowManualEntry = !ShowManualEntry;
+        }
 
+        private void ExecuteSaveManualEntry()
+        {
+            // take the value from the inputs
+            // append the values to TimeEntries
+            // add conditional logic to toggle Checkin/Checkout...
+                // buttons based on the order
+            
+        }
 
         private void ExecuteReset()
         {
@@ -398,6 +426,7 @@ namespace Checkin.ViewModels
         {
             ((Command)CheckinCommand).ChangeCanExecute();
             ((Command)CheckoutCommand).ChangeCanExecute();
+            ((Command)ShowManualEntryCommand).ChangeCanExecute();
         }
     }
 }
