@@ -63,8 +63,8 @@
             </HorizontalStackLayout>
 
             <HorizontalStackLayout Grid.Row="4" Grid.ColumnSpan="3" HorizontalOptions="Center" Spacing="10" IsVisible="{Binding ShowManualEntry}">
-                <DatePicker />
-                <TimePicker />
+                <DatePicker  Date="{Binding ManualDate}" />
+                <TimePicker Time="{Binding ManualTime}" />
                 <Button Text="Save" Command="{Binding SaveManualEntryCommand}}" Style="{StaticResource SecondaryButton}" />
             </HorizontalStackLayout>
 

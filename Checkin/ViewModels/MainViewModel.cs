@@ -48,6 +48,21 @@ namespace Checkin.ViewModels
             }
         }
 
+        private DateOnly _manualDate;
+        public DateOnly ManualDate
+        {
+            get => _manualDate;
+            set => SetProperty(ref _manualDate, value);
+        }
+
+        private TimeOnly _manualTime;
+        public TimeOnly ManualTime
+        {
+            get => _manualTime;
+            set => SetProperty(ref _manualTime, value);
+                
+        }
+
         private ObservableCollection<TimeEntry>? _timeEntries;
         public ObservableCollection<TimeEntry>? TimeEntries
         {
@@ -347,13 +362,29 @@ namespace Checkin.ViewModels
             ShowManualEntry = !ShowManualEntry;
         }
 
-        private void ExecuteSaveManualEntry()
+        private async Task ExecuteSaveManualEntry()
         {
             // take the value from the inputs
             // append the values to TimeEntries
             // add conditional logic to toggle Checkin/Checkout...
-                // buttons based on the order
-            
+            // buttons based on the order
+
+            // get TimeEntries and deserialize it
+            // look at the structure of the last element
+            // 
+            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
+            if (te != null)
+            {
+                var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
+            }
+            var test = ManualDate;
+            var test2 = ManualTime;
+            if (IsCheckedIn)
+            {
+                // update CheckoutTime in TimeEntry
+            }
+
+            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
         }
 
         private void ExecuteReset()
