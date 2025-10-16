@@ -11,3 +11,4 @@ v17
 *.user
 .vs
 .gitignore
+.idea
