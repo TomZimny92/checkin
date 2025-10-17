@@ -22,11 +22,12 @@ namespace Checkin.ViewModels
         // private const string HourlyRateKey = "HourlyRateKey";// dont need here?
         //private const string CalculatedResultKey = "CalculatedResultKey";
 
-        public DateTime MinDatePickerValue = DateTime.Today;
-        //public DateTime MinDatePickerValue { 
-        //    get => _minDatePickerValue; 
-        //    set => SetProperty(ref _minDatePickerValue, DateTime.Today); 
-        //}
+        private DateTime _minDatePickerValue;
+        public DateTime MinDatePickerValue
+        {
+            get => _minDatePickerValue;
+            set => SetProperty(ref _minDatePickerValue, value);
+        }
 
         private bool _isCheckedIn;
         public bool IsCheckedIn
@@ -179,6 +180,8 @@ namespace Checkin.ViewModels
             }
             finally
             {
+                MinDatePickerValue = DateTime.Now;
+                ManualDate = MinDatePickerValue;
                 UpdateCommandStates();
             }
         }
@@ -378,19 +381,64 @@ namespace Checkin.ViewModels
             // get TimeEntries and deserialize it
             // look at the structure of the last element
             // 
-            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
-            if (te != null)
-            {
-                var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
-            }
-            var test = ManualDate.Date;
-            var test2 = ManualTime;
-            if (IsCheckedIn)
-            {
-                // update CheckoutTime in TimeEntry
-            }
+            DateOnly date = DateOnly.FromDateTime(ManualDate);
+            TimeOnly time = TimeOnly.FromTimeSpan(ManualTime);
 
-            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
+
+            if (te is null)
+            {
+                // Create a new TimeEntries collection
+                var newTimeEntries = new ObservableCollection<TimeEntry>();
+                // Create a new TimeEntry 
+                // Set CheckinTime to new value
+                // Set CheckoutTime to null
+                var newTimeEntry = new TimeEntry
+                {
+                    CheckinTime = new DateTime(date, time),
+                    CheckoutTime = null,
+                };
+                newTimeEntries.Add(newTimeEntry);
+                await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+                // Update "IsCheckedIn"
+                IsCheckedIn = true;
+            }
+            else
+            {
+                if (IsCheckedIn)
+                {
+                    // update CheckoutTime in TimeEntry
+                    // take the last index of TimeEntries and add a CheckoutTime
+                    // replace the last entry with the updated entry
+                    var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
+                    var lastEntry = timeEntries?[^1]; // fancy way to get the last index
+                    if (lastEntry != null && timeEntries != null)
+                    {
+                        if (lastEntry.CheckoutTime is null)
+                        {
+                            lastEntry.CheckoutTime = new DateTime(date, time);
+                            timeEntries[^1] = lastEntry;
+                            TimeEntries = timeEntries;
+                            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+                            IsCheckedIn = false;
+                        }                        
+                    }
+                }
+                else
+                {
+                    // create a new TimeEntry in TimeEntries
+                    // set the CheckinTime to the new value
+                    // set the CheckoutTime to null
+                    var newEntry = new TimeEntry
+                    {
+                        CheckinTime = new DateTime(date, time),
+                        CheckoutTime = null
+                    };
+                    TimeEntries?.Add(newEntry);
+                    await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+                    IsCheckedIn = true;
+                }
+            }            
         }
 
         private void ExecuteReset()

@@ -63,9 +63,9 @@
             </HorizontalStackLayout>
 
             <HorizontalStackLayout Grid.Row="4" Grid.ColumnSpan="3" HorizontalOptions="Center" Spacing="10" IsVisible="{Binding ShowManualEntry}">
-                <DatePicker Format="dd/MM/yyyy" MinimumDate="{Binding MinDatePickerValue}" Date="{Binding ManualDate}" />
+                <DatePicker Format="mm/dd/yyyy" MinimumDate="{Binding MinDatePickerValue}" Date="{Binding ManualDate}" />
                 <TimePicker Time="{Binding ManualTime}" />
-                <Button Text="Save" Command="{Binding SaveManualEntryCommand}}" Style="{StaticResource SecondaryButton}" />
+                <Button Text="Save" Command="{Binding SaveManualEntryCommand}" Style="{StaticResource SecondaryButton}" />
             </HorizontalStackLayout>
 
         </Grid>
