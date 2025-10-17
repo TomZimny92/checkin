@@ -22,6 +22,12 @@ namespace Checkin.ViewModels
         // private const string HourlyRateKey = "HourlyRateKey";// dont need here?
         //private const string CalculatedResultKey = "CalculatedResultKey";
 
+        public DateTime MinDatePickerValue = DateTime.Today;
+        //public DateTime MinDatePickerValue { 
+        //    get => _minDatePickerValue; 
+        //    set => SetProperty(ref _minDatePickerValue, DateTime.Today); 
+        //}
+
         private bool _isCheckedIn;
         public bool IsCheckedIn
         {
@@ -48,15 +54,15 @@ namespace Checkin.ViewModels
             }
         }
 
-        private DateOnly _manualDate;
-        public DateOnly ManualDate
+        private DateTime _manualDate;
+        public DateTime ManualDate
         {
             get => _manualDate;
             set => SetProperty(ref _manualDate, value);
         }
 
-        private TimeOnly _manualTime;
-        public TimeOnly ManualTime
+        private TimeSpan _manualTime;
+        public TimeSpan ManualTime
         {
             get => _manualTime;
             set => SetProperty(ref _manualTime, value);
@@ -377,7 +383,7 @@ namespace Checkin.ViewModels
             {
                 var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
             }
-            var test = ManualDate;
+            var test = ManualDate.Date;
             var test2 = ManualTime;
             if (IsCheckedIn)
             {
