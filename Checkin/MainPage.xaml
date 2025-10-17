@@ -68,6 +68,11 @@
                 <Button Text="Save" Command="{Binding SaveManualEntryCommand}" Style="{StaticResource SecondaryButton}" />
             </HorizontalStackLayout>
 
+            <HorizontalStackLayout Grid.Row="5" Grid.ColumnSpan="3" HorizontalOptions="Center" Spacing="10">
+                <Button Text="Undo" Command="{Binding UndoCommand}" Style="{StaticResource SecondaryButton}" />
+                <Button Text="Redo" Command="{Binding RedoCommand}" Style="{StaticResource SecondaryButton}" />
+            </HorizontalStackLayout>
+
         </Grid>
     </ScrollView>
 </ContentPage>

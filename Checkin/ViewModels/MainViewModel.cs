@@ -15,12 +15,9 @@ namespace Checkin.ViewModels
     {
         private readonly ILogger<MainViewModel> _logger;
 
-        // SecureStorage Keys
         private const string IsCheckedInKey = "IsCheckedInKey";
         private const string TimeEntriesKey = "TimeEntriesKey";
         private const string TotalElapsedTimeKey = "TotalElapsedTimeKey";
-        // private const string HourlyRateKey = "HourlyRateKey";// dont need here?
-        //private const string CalculatedResultKey = "CalculatedResultKey";
 
         private DateTime _minDatePickerValue;
         public DateTime MinDatePickerValue
@@ -98,6 +95,8 @@ namespace Checkin.ViewModels
         public ICommand SaveManualEntryCommand { get; }
         public ICommand ResetCommand { get; }
         public ICommand PreferencesCommand { get; }
+        public ICommand UndoCommand { get; }
+        public ICommand RedoCommand { get; }
 
         private IDispatcherTimer? _clockTimer;
 
@@ -110,6 +109,8 @@ namespace Checkin.ViewModels
             SaveManualEntryCommand = new Command(async () => await ExecuteSaveManualEntry());
             ResetCommand = new Command(ExecuteReset);
             PreferencesCommand = new Command(async () => await ExecutePreferences());
+            UndoCommand = new Command(async () => await ExecuteUndo());
+            RedoCommand = new Command(async () => await ExecuteRedo());
 
             _ = InitializeData();
             SetupClock();
@@ -153,26 +154,6 @@ namespace Checkin.ViewModels
                 {
                     IsCheckedIn = false;
                 }
-
-                //var hourlyRate = await SecureStorage.Default.GetAsync(HourlyRateKey);
-                //if (double.TryParse(hourlyRate, out double loadedRate))
-                //{
-                //    HourlyRate = loadedRate;
-                //}
-                //else
-                //{
-                //    HourlyRate = 0.0; // Default if not found or invalid
-                //}
-
-                //var calculatedResult = await SecureStorage.Default.GetAsync(CalculatedResultKey);
-                //if (!string.IsNullOrEmpty(calculatedResult))
-                //{
-                //    CalculatedResult = calculatedResult;
-                //}
-                //else
-                //{
-                //    CalculatedResult = "0";
-                //}
             }
             catch (Exception ex)
             {
@@ -211,7 +192,6 @@ namespace Checkin.ViewModels
 
         private void SetupClock()
         {
-            // probably need to have Timer dependently injected
             _clockTimer = App.Current?.Dispatcher.CreateTimer();
             if (_clockTimer != null)
             {
@@ -241,7 +221,6 @@ namespace Checkin.ViewModels
             }
             else
             {
-                // initialize TimeEntries with default, non-null value?
                 Console.WriteLine("ExecuteCheckin blew up");
             }
         }
@@ -256,7 +235,6 @@ namespace Checkin.ViewModels
             IsCheckedIn = false;
             DateTime checkoutTime = DateTime.Now;
 
-            // Find the last open check-in entry and update it
             if (TimeEntries != null)
             {
                 var lastEntry = TimeEntries.LastOrDefault(e => !e.CheckoutTime.HasValue);
@@ -356,9 +334,6 @@ namespace Checkin.ViewModels
                 {
                         App.Current?.Windows[0]?.Page?.DisplayAlert("Summary", "Elapsed Time or Time Entries not found. There's nothing to report.", "OK");                                        
                 }
-                // DoTheMath(); moving this to SummaryPage. Don't need it here
-                // extract the dates from the timeentries to display as sheet
-                // might have to do that in the modal
             }
             catch (Exception ex)
             {
@@ -373,14 +348,6 @@ namespace Checkin.ViewModels
 
         private async Task ExecuteSaveManualEntry()
         {
-            // take the value from the inputs
-            // append the values to TimeEntries
-            // add conditional logic to toggle Checkin/Checkout...
-            // buttons based on the order
-
-            // get TimeEntries and deserialize it
-            // look at the structure of the last element
-            // 
             DateOnly date = DateOnly.FromDateTime(ManualDate);
             TimeOnly time = TimeOnly.FromTimeSpan(ManualTime);
 
@@ -388,11 +355,7 @@ namespace Checkin.ViewModels
 
             if (te is null)
             {
-                // Create a new TimeEntries collection
                 var newTimeEntries = new ObservableCollection<TimeEntry>();
-                // Create a new TimeEntry 
-                // Set CheckinTime to new value
-                // Set CheckoutTime to null
                 var newTimeEntry = new TimeEntry
                 {
                     CheckinTime = new DateTime(date, time),
@@ -400,16 +363,14 @@ namespace Checkin.ViewModels
                 };
                 newTimeEntries.Add(newTimeEntry);
                 await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
-                // Update "IsCheckedIn"
                 IsCheckedIn = true;
+                await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+                CalculateElapsedTime();
             }
             else
             {
                 if (IsCheckedIn)
                 {
-                    // update CheckoutTime in TimeEntry
-                    // take the last index of TimeEntries and add a CheckoutTime
-                    // replace the last entry with the updated entry
                     var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
                     var lastEntry = timeEntries?[^1]; // fancy way to get the last index
                     if (lastEntry != null && timeEntries != null)
@@ -421,14 +382,13 @@ namespace Checkin.ViewModels
                             TimeEntries = timeEntries;
                             await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                             IsCheckedIn = false;
+                            await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+                            CalculateElapsedTime();
                         }                        
                     }
                 }
                 else
                 {
-                    // create a new TimeEntry in TimeEntries
-                    // set the CheckinTime to the new value
-                    // set the CheckoutTime to null
                     var newEntry = new TimeEntry
                     {
                         CheckinTime = new DateTime(date, time),
@@ -437,6 +397,8 @@ namespace Checkin.ViewModels
                     TimeEntries?.Add(newEntry);
                     await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                     IsCheckedIn = true;
+                    await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+                    CalculateElapsedTime();
                 }
             }            
         }
@@ -448,12 +410,10 @@ namespace Checkin.ViewModels
                 TimeEntries.Clear();
                 IsCheckedIn = false;
                 TotalElapsedTime = "00:00:00";
-                //CalculatedResult = "0";
                 UpdateCommandStates();
                 SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                 SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
                 SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
-                //SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
                 App.Current?.Windows[0]?.Page?.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
             }
             else
@@ -464,7 +424,6 @@ namespace Checkin.ViewModels
 
         private async Task ExecutePreferences()
         {
-            // show the modal
             try
             {
                 var preferencesPage = new PreferencesPage();
@@ -474,23 +433,36 @@ namespace Checkin.ViewModels
                 {
                     await Application.Current.Windows[0].Navigation.PushModalAsync(preferencesPage);
                 }
-                
-                //await Application.Current.MainPage.Navigation.PushModalAsync(preferencesPage); 
-                //var rate = await SecureStorage.Default.GetAsync(HourlyRateKey);
-                //if (double.TryParse(rate, out double loadedRate))
-                //{
-                //    HourlyRate = loadedRate;
-                //}
-                //else
-                //{
-                //    HourlyRate = 0.0;
-                //}
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading hourly rate: {ex.Message}");
-                //HourlyRate = 0.0;
             }
+        }
+
+        private async Task ExecuteUndo()
+        {
+            // get the last index of TimeEntries
+            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
+            if (te != null)
+            {
+
+            }
+            // if CheckoutTime is null, add the CheckinTime
+                // at this index to another DateTime collection
+                // then remove this CheckinTime from TimeEntries
+                // update IsCheckedIn
+                // recalculate TotalElapsedTime
+            // else save the CheckoutTime to the same DateTime collection
+                // set CheckoutTime to null
+                // update IsCheckedIn
+                // recalculate TotalElapsedTime
+            // 
+        }
+
+        private async Task ExecuteRedo()
+        {
+
         }
 
         private async Task SaveDataAsync()
@@ -505,6 +477,11 @@ namespace Checkin.ViewModels
             {
                 Console.WriteLine(e.ToString());
             }
+        }
+
+        private async Task GetStoredObject(string key)
+        {
+            var 
         }
 
         private void UpdateCommandStates()
