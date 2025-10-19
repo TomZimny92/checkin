@@ -18,6 +18,7 @@ namespace Checkin.ViewModels
         private const string IsCheckedInKey = "IsCheckedInKey";
         private const string TimeEntriesKey = "TimeEntriesKey";
         private const string TotalElapsedTimeKey = "TotalElapsedTimeKey";
+        private const string DoBucketKey = "DoBucketKey";
 
         private DateTime _minDatePickerValue;
         public DateTime MinDatePickerValue
@@ -86,6 +87,13 @@ namespace Checkin.ViewModels
         {
             get => _totalElapsedTime;
             set => SetProperty(ref _totalElapsedTime, value);
+        }
+
+        private ObservableCollection<DateTime> _doBucket;
+        public ObservableCollection<DateTime> DoBucket // make this not null
+        {
+            get => _doBucket;
+            set => SetProperty(ref _doBucket, value);
         }
 
         public ICommand CheckinCommand { get; }
@@ -446,17 +454,42 @@ namespace Checkin.ViewModels
             var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
             if (te != null)
             {
-
+                var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
+                var lastEntry = timeEntries?.Count > 0 ? timeEntries[^1] : null;
+                
+                if (lastEntry != null)
+                {
+                    if (lastEntry.CheckoutTime is null)
+                    {
+                        DoBucket.Add(lastEntry.CheckinTime);
+                        TimeEntries?.RemoveAt(TimeEntries.Count - 1);
+                    }
+                    else
+                    {
+                        DoBucket.Add((DateTime)lastEntry.CheckoutTime);
+                        TimeEntries[^1].CheckoutTime = null;
+                    }
+                }
+                else
+                {
+                    await App.Current?.Windows[0]?.Page?.DisplayAlert("Undo", "Nothing to undo.", "Ok");
+                    return;
+                }
             }
+            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+            await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, JsonSerializer.Serialize(TotalElapsedTime));
+            await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
+            IsCheckedIn = !IsCheckedIn;
+            CalculateElapsedTime();
             // if CheckoutTime is null, add the CheckinTime
-                // at this index to another DateTime collection
-                // then remove this CheckinTime from TimeEntries
-                // update IsCheckedIn
-                // recalculate TotalElapsedTime
+            // at this index to another DateTime collection
+            // then remove this CheckinTime from TimeEntries
+            // update IsCheckedIn
+            // recalculate TotalElapsedTime
             // else save the CheckoutTime to the same DateTime collection
-                // set CheckoutTime to null
-                // update IsCheckedIn
-                // recalculate TotalElapsedTime
+            // set CheckoutTime to null
+            // update IsCheckedIn
+            // recalculate TotalElapsedTime
             // 
         }
 
@@ -479,10 +512,37 @@ namespace Checkin.ViewModels
             }
         }
 
-        private async Task GetStoredObject(string key)
-        {
-            var 
-        }
+        //private async Task<T?> GetStoredObject<T>(string key)
+        //{
+        //    switch (key)
+        //    {
+        //        case TimeEntriesKey:
+        //            // get the stuff
+        //            // format the stuff
+        //            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
+        //            if (te != null)
+        //            {
+        //                var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
+        //                return timeEntries;
+        //            }
+        //            else
+        //            {
+        //                return null;
+        //            }
+        //                break;
+        //        case IsCheckedInKey:
+        //            // get the stuff
+        //            // format the stuff
+        //            break;
+        //        case TotalElapsedTimeKey:
+        //            // get the stuff
+        //            // format the stuff
+        //            break;
+        //        default:
+        //            // idk
+        //            break;
+        //    }
+        //}
 
         private void UpdateCommandStates()
         {
