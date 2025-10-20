@@ -498,36 +498,37 @@ namespace Checkin.ViewModels
 
         private async Task ExecuteRedo()
         {
-            // add to TimeEntries
-            // remove from DoBucket
-
-            // USE TIMEENTRIES INSTEAD OF TE
-            // SAME WITH DOBUCKET
-            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
-            var db = await SecureStorage.Default.GetAsync(DoBucketKey);
-
-            if (te != null)
+            // IF YOU CHECKIN OR CHEKCOUT WITH STUFF IN THE DOBUCKET,
+            // CLEAR THE DOBUCKET
+            // THIS WILL AVOID MALARCHY
+            if (DoBucket.Count > 0)
             {
-                var timeEntries = FormatStorageData(te);
-            }
-            if (db != null)
-            {
-                var doBucket = JsonSerializer.Deserialize<ObservableCollection<DateTime>>(db);
+                var lastDo = DoBucket.Pop();
+                var teCount = TimeEntries?.Count > 0 ? TimeEntries.Count : 0;
+                var lastEntry = teCount > 0 ? TimeEntries[^1] : new TimeEntry();
+                if (IsCheckedIn)
+                {
+                    lastEntry.CheckoutTime = lastDo;
+                    TimeEntries?.RemoveAt(teCount - 1);
+                    TimeEntries?.Add(lastEntry);
+                }
+                else
+                {
+                    lastEntry.CheckinTime = lastDo;
+                    TimeEntries?.RemoveAt(teCount - 1); // this may be empty
+                    TimeEntries?.Add(lastEntry);
+                }
             }
             else
             {
                 await App.Current?.Windows[0]?.Page?.DisplayAlert("Redo", "Nothing to redo", "Ok");
                 return;
             }
-
-            var lastDo = DoBucket.Pop();
-            var lastEntry = TimeEntries?.Count > 0 ? TimeEntries[^1] : null;
-            if (lastEntry != null && IsCheckedIn)
-            {
-                lastEntry.CheckoutTime = lastDo;
-                TimeEntries?[TimeEntries.Count - 1] = lastEntry;
-            }
-
+            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
+            await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, JsonSerializer.Serialize(TotalElapsedTime));
+            await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
+            IsCheckedIn = !IsCheckedIn;
+            CalculateElapsedTime();
         }
 
         private async Task SaveDataAsync()
