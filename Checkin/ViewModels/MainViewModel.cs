@@ -89,8 +89,8 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _totalElapsedTime, value);
         }
 
-        private ObservableCollection<DateTime> _doBucket;
-        public ObservableCollection<DateTime> DoBucket // make this not null
+        private Stack<DateTime> _doBucket;
+        public Stack<DateTime> DoBucket
         {
             get => _doBucket;
             set => SetProperty(ref _doBucket, value);
@@ -151,7 +151,7 @@ namespace Checkin.ViewModels
                 {
                     TotalElapsedTime = "00:00:00";
                 }
-                _logger.LogInformation(TotalElapsedTime.ToString());
+                //_logger.LogInformation(TotalElapsedTime.ToString());
 
                 var isCheckedIn = await SecureStorage.Default.GetAsync(IsCheckedInKey);
                 if (bool.TryParse(isCheckedIn, out bool loadedIsCheckedIn))
@@ -161,6 +161,20 @@ namespace Checkin.ViewModels
                 else
                 {
                     IsCheckedIn = false;
+                }
+
+                var doBucket = await SecureStorage.Default.GetAsync(DoBucketKey);
+                if (!string.IsNullOrEmpty(doBucket))
+                {
+                    var formattedDoBucket = JsonSerializer.Deserialize<Stack<DateTime>>(doBucket);
+                    if (formattedDoBucket != null)
+                    {
+                        DoBucket = formattedDoBucket;
+                    }
+                }
+                else
+                {
+                    DoBucket = new Stack<DateTime>();
                 }
             }
             catch (Exception ex)
@@ -450,7 +464,6 @@ namespace Checkin.ViewModels
 
         private async Task ExecuteUndo()
         {
-            // get the last index of TimeEntries
             var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
             if (te != null)
             {
@@ -461,12 +474,12 @@ namespace Checkin.ViewModels
                 {
                     if (lastEntry.CheckoutTime is null)
                     {
-                        DoBucket.Add(lastEntry.CheckinTime);
+                        DoBucket.Push(lastEntry.CheckinTime);
                         TimeEntries?.RemoveAt(TimeEntries.Count - 1);
                     }
                     else
                     {
-                        DoBucket.Add((DateTime)lastEntry.CheckoutTime);
+                        DoBucket.Push((DateTime)lastEntry.CheckoutTime);
                         TimeEntries[^1].CheckoutTime = null;
                     }
                 }
@@ -481,20 +494,39 @@ namespace Checkin.ViewModels
             await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
             IsCheckedIn = !IsCheckedIn;
             CalculateElapsedTime();
-            // if CheckoutTime is null, add the CheckinTime
-            // at this index to another DateTime collection
-            // then remove this CheckinTime from TimeEntries
-            // update IsCheckedIn
-            // recalculate TotalElapsedTime
-            // else save the CheckoutTime to the same DateTime collection
-            // set CheckoutTime to null
-            // update IsCheckedIn
-            // recalculate TotalElapsedTime
-            // 
         }
 
         private async Task ExecuteRedo()
         {
+            // add to TimeEntries
+            // remove from DoBucket
+
+            // USE TIMEENTRIES INSTEAD OF TE
+            // SAME WITH DOBUCKET
+            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
+            var db = await SecureStorage.Default.GetAsync(DoBucketKey);
+
+            if (te != null)
+            {
+                var timeEntries = FormatStorageData(te);
+            }
+            if (db != null)
+            {
+                var doBucket = JsonSerializer.Deserialize<ObservableCollection<DateTime>>(db);
+            }
+            else
+            {
+                await App.Current?.Windows[0]?.Page?.DisplayAlert("Redo", "Nothing to redo", "Ok");
+                return;
+            }
+
+            var lastDo = DoBucket.Pop();
+            var lastEntry = TimeEntries?.Count > 0 ? TimeEntries[^1] : null;
+            if (lastEntry != null && IsCheckedIn)
+            {
+                lastEntry.CheckoutTime = lastDo;
+                TimeEntries?[TimeEntries.Count - 1] = lastEntry;
+            }
 
         }
 
