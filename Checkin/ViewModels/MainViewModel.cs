@@ -1,11 +1,7 @@
 ﻿using Checkin.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 
@@ -13,8 +9,6 @@ namespace Checkin.ViewModels
 {
     public class MainViewModel : BaseViewModel
     {
-        private readonly ILogger<MainViewModel> _logger;
-
         private const string IsCheckedInKey = "IsCheckedInKey";
         private const string TimeEntriesKey = "TimeEntriesKey";
         private const string TotalElapsedTimeKey = "TotalElapsedTimeKey";
@@ -68,8 +62,8 @@ namespace Checkin.ViewModels
                 
         }
 
-        private ObservableCollection<TimeEntry>? _timeEntries;
-        public ObservableCollection<TimeEntry>? TimeEntries
+        private ObservableCollection<TimeEntry> _timeEntries;
+        public ObservableCollection<TimeEntry> TimeEntries
         {
             get => _timeEntries;
             set => SetProperty(ref _timeEntries, value);
@@ -82,8 +76,8 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _currentTime, value);
         }
         
-        private string? _totalElapsedTime;
-        public string? TotalElapsedTime
+        private string _totalElapsedTime;
+        public string TotalElapsedTime
         {
             get => _totalElapsedTime;
             set => SetProperty(ref _totalElapsedTime, value);
@@ -94,6 +88,20 @@ namespace Checkin.ViewModels
         {
             get => _doBucket;
             set => SetProperty(ref _doBucket, value);
+        }
+
+        private bool _canUndo;
+        public bool CanUndo
+        {
+            get => _canUndo;
+            set => SetProperty(ref _canUndo, value);
+        }
+
+        private bool _canRedo;
+        public bool CanRedo
+        {
+            get => _canRedo;
+            set => SetProperty(ref _canRedo, value);
         }
 
         public ICommand CheckinCommand { get; }
@@ -110,15 +118,15 @@ namespace Checkin.ViewModels
 
         public MainViewModel()
         {
-            CheckinCommand = new Command(ExecuteCheckin, CanExecuteCheckin);
-            CheckoutCommand = new Command(ExecuteCheckout, CanExecuteCheckout);
-            ShowSummaryCommand = new Command(async () => await ExecuteShowResult());
-            ShowManualEntryCommand = new Command(ExecuteShowManualEntry);
+            CheckoutCommand = new Command(async () => await ExecuteCheckout(), CanExecuteCheckout);
+            CheckinCommand = new Command(async () => await ExecuteCheckin(), CanExecuteCheckin);
             SaveManualEntryCommand = new Command(async () => await ExecuteSaveManualEntry());
-            ResetCommand = new Command(ExecuteReset);
+            UndoCommand = new Command(async () => await ExecuteUndo(), CanExecuteUndo);
+            RedoCommand = new Command(async () => await ExecuteRedo(), CanExecuteRedo);
             PreferencesCommand = new Command(async () => await ExecutePreferences());
-            UndoCommand = new Command(async () => await ExecuteUndo());
-            RedoCommand = new Command(async () => await ExecuteRedo());
+            ShowSummaryCommand = new Command(async () => await ExecuteShowResult());
+            ResetCommand = new Command(async () => await ExecuteReset());
+            ShowManualEntryCommand = new Command(ExecuteShowManualEntry);
 
             _ = InitializeData();
             SetupClock();
@@ -139,7 +147,7 @@ namespace Checkin.ViewModels
                 }
                 else
                 {
-                    TimeEntries = new ObservableCollection<TimeEntry>();
+                    TimeEntries = [];
                 }
 
                 var totalElapsedTime = await SecureStorage.Default.GetAsync(TotalElapsedTimeKey);
@@ -150,17 +158,6 @@ namespace Checkin.ViewModels
                 else
                 {
                     TotalElapsedTime = "00:00:00";
-                }
-                //_logger.LogInformation(TotalElapsedTime.ToString());
-
-                var isCheckedIn = await SecureStorage.Default.GetAsync(IsCheckedInKey);
-                if (bool.TryParse(isCheckedIn, out bool loadedIsCheckedIn))
-                {
-                    IsCheckedIn = loadedIsCheckedIn;
-                }
-                else
-                {
-                    IsCheckedIn = false;
                 }
 
                 var doBucket = await SecureStorage.Default.GetAsync(DoBucketKey);
@@ -176,6 +173,17 @@ namespace Checkin.ViewModels
                 {
                     DoBucket = new Stack<DateTime>();
                 }
+
+                var isCheckedIn = await SecureStorage.Default.GetAsync(IsCheckedInKey);
+                if (bool.TryParse(isCheckedIn, out bool loadedIsCheckedIn))
+                {
+                    IsCheckedIn = loadedIsCheckedIn;
+                }
+                else
+                {
+                    IsCheckedIn = false;
+                }
+
             }
             catch (Exception ex)
             {
@@ -231,7 +239,7 @@ namespace Checkin.ViewModels
             }
         }
 
-        private void ExecuteCheckin()
+        private async Task ExecuteCheckin()
         {
             IsCheckedIn = true;
             if (TimeEntries != null)
@@ -239,9 +247,7 @@ namespace Checkin.ViewModels
                 TimeEntries.Add(new TimeEntry { CheckinTime = DateTime.Now, CheckoutTime = null });
                 DoBucket.Clear();
                 UpdateCommandStates();
-                SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
-                SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-                SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
+                await SaveDataAsync();
             }
             else
             {
@@ -254,7 +260,7 @@ namespace Checkin.ViewModels
             return !IsCheckedIn;
         }
 
-        private void ExecuteCheckout()
+        private async Task ExecuteCheckout()
         {
             IsCheckedIn = false;
             DateTime checkoutTime = DateTime.Now;
@@ -277,9 +283,7 @@ namespace Checkin.ViewModels
                 DoBucket.Clear();
                 UpdateCommandStates();
                 CalculateElapsedTime(); // Update summary immediately after checkout
-                SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
-                SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-                SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
+                await SaveDataAsync();
             }
             else
             {
@@ -319,7 +323,7 @@ namespace Checkin.ViewModels
             }
         }
 
-        private string FormatElapsedTime(TimeSpan time)
+        private static string FormatElapsedTime(TimeSpan time)
         {
             var sbHours = new StringBuilder((time.Days * 24 + time.Hours).ToString());
             var sbMinutes = new StringBuilder(time.Minutes.ToString());
@@ -358,7 +362,7 @@ namespace Checkin.ViewModels
                 }
                 else
                 {
-                        App.Current?.Windows[0]?.Page?.DisplayAlert("Summary", "Elapsed Time or Time Entries not found. There's nothing to report.", "OK");                                        
+                    App.Current?.Windows[0]?.Page?.DisplayAlert("Summary", "Elapsed Time or Time Entries not found. There's nothing to report.", "OK");                                        
                 }
             }
             catch (Exception ex)
@@ -388,10 +392,7 @@ namespace Checkin.ViewModels
                     CheckoutTime = null,
                 };
                 newTimeEntries.Add(newTimeEntry);
-                await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                 IsCheckedIn = true;
-                await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-                CalculateElapsedTime();
             }
             else
             {
@@ -406,10 +407,7 @@ namespace Checkin.ViewModels
                             lastEntry.CheckoutTime = new DateTime(date, time);
                             timeEntries[^1] = lastEntry;
                             TimeEntries = timeEntries;
-                            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                             IsCheckedIn = false;
-                            await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-                            CalculateElapsedTime();
                         }                        
                     }
                 }
@@ -421,25 +419,27 @@ namespace Checkin.ViewModels
                         CheckoutTime = null
                     };
                     TimeEntries?.Add(newEntry);
-                    await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                     IsCheckedIn = true;
-                    await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-                    CalculateElapsedTime();
                 }
-            }            
+            }
+            CalculateElapsedTime();
+            await SaveDataAsync();
         }
 
-        private void ExecuteReset()
+        private async Task ExecuteReset()
         {
             if (TimeEntries != null)
             {
                 TimeEntries.Clear();
                 IsCheckedIn = false;
                 TotalElapsedTime = "00:00:00";
+                DoBucket.Clear();
+                CanUndo = false;
+                CanRedo = false;
+
                 UpdateCommandStates();
-                SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
-                SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
-                SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
+                await SaveDataAsync();
+
                 App.Current?.Windows[0]?.Page?.DisplayAlert("Reset", "All time entries have been cleared.", "OK");
             }
             else
@@ -493,19 +493,19 @@ namespace Checkin.ViewModels
                     return;
                 }
             }
-            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
-            await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, JsonSerializer.Serialize(TotalElapsedTime));
-            await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
+
             IsCheckedIn = !IsCheckedIn;
-            await SecureStorage.Default.SetAsync(IsCheckedInKey, JsonSerializer.Serialize(IsCheckedIn));
             CalculateElapsedTime();
+            await SaveDataAsync();
+        }
+
+        private bool CanExecuteUndo()
+        {
+            return CanUndo;
         }
 
         private async Task ExecuteRedo()
         {
-            // IF YOU CHECKIN OR CHEKCOUT WITH STUFF IN THE DOBUCKET,
-            // CLEAR THE DOBUCKET
-            // THIS WILL AVOID MALARCHY
             if (DoBucket.Count > 0)
             {
                 var lastDo = DoBucket.Pop();
@@ -529,12 +529,15 @@ namespace Checkin.ViewModels
                 await App.Current?.Windows[0]?.Page?.DisplayAlert("Redo", "Nothing to redo", "Ok");
                 return;
             }
-            await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
-            await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, JsonSerializer.Serialize(TotalElapsedTime));
-            await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
+
             IsCheckedIn = !IsCheckedIn;
-            await SecureStorage.Default.SetAsync(IsCheckedInKey, JsonSerializer.Serialize(IsCheckedIn));
             CalculateElapsedTime();
+            await SaveDataAsync();
+        }
+
+        private bool CanExecuteRedo()
+        {
+            return CanRedo;
         }
 
         private async Task SaveDataAsync()
@@ -544,6 +547,7 @@ namespace Checkin.ViewModels
                 await SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                 await SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
                 await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, TotalElapsedTime);
+                await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
             }
             catch (Exception e)
             {
@@ -551,43 +555,13 @@ namespace Checkin.ViewModels
             }
         }
 
-        //private async Task<T?> GetStoredObject<T>(string key)
-        //{
-        //    switch (key)
-        //    {
-        //        case TimeEntriesKey:
-        //            // get the stuff
-        //            // format the stuff
-        //            var te = await SecureStorage.Default.GetAsync(TimeEntriesKey);
-        //            if (te != null)
-        //            {
-        //                var timeEntries = JsonSerializer.Deserialize<ObservableCollection<TimeEntry>>(te);
-        //                return timeEntries;
-        //            }
-        //            else
-        //            {
-        //                return null;
-        //            }
-        //                break;
-        //        case IsCheckedInKey:
-        //            // get the stuff
-        //            // format the stuff
-        //            break;
-        //        case TotalElapsedTimeKey:
-        //            // get the stuff
-        //            // format the stuff
-        //            break;
-        //        default:
-        //            // idk
-        //            break;
-        //    }
-        //}
-
         private void UpdateCommandStates()
         {
             ((Command)CheckinCommand).ChangeCanExecute();
             ((Command)CheckoutCommand).ChangeCanExecute();
             ((Command)ShowManualEntryCommand).ChangeCanExecute();
+            ((Command)UndoCommand).ChangeCanExecute();
+            ((Command)RedoCommand).ChangeCanExecute();
         }
     }
 }
