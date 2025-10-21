@@ -237,9 +237,11 @@ namespace Checkin.ViewModels
             if (TimeEntries != null)
             {
                 TimeEntries.Add(new TimeEntry { CheckinTime = DateTime.Now, CheckoutTime = null });
+                DoBucket.Clear();
                 UpdateCommandStates();
                 SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                 SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+                SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
             }
             else
             {
@@ -272,10 +274,12 @@ namespace Checkin.ViewModels
                     TimeEntries.Add(new TimeEntry { CheckinTime = DateTime.MinValue, CheckoutTime = checkoutTime });
                 }
 
+                DoBucket.Clear();
                 UpdateCommandStates();
                 CalculateElapsedTime(); // Update summary immediately after checkout
                 SecureStorage.Default.SetAsync(TimeEntriesKey, JsonSerializer.Serialize(TimeEntries));
                 SecureStorage.Default.SetAsync(IsCheckedInKey, IsCheckedIn.ToString());
+                SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
             }
             else
             {
@@ -493,6 +497,7 @@ namespace Checkin.ViewModels
             await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, JsonSerializer.Serialize(TotalElapsedTime));
             await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
             IsCheckedIn = !IsCheckedIn;
+            await SecureStorage.Default.SetAsync(IsCheckedInKey, JsonSerializer.Serialize(IsCheckedIn));
             CalculateElapsedTime();
         }
 
@@ -528,6 +533,7 @@ namespace Checkin.ViewModels
             await SecureStorage.Default.SetAsync(TotalElapsedTimeKey, JsonSerializer.Serialize(TotalElapsedTime));
             await SecureStorage.Default.SetAsync(DoBucketKey, JsonSerializer.Serialize(DoBucket));
             IsCheckedIn = !IsCheckedIn;
+            await SecureStorage.Default.SetAsync(IsCheckedInKey, JsonSerializer.Serialize(IsCheckedIn));
             CalculateElapsedTime();
         }
 
