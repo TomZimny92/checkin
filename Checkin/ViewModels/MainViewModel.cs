@@ -69,8 +69,8 @@ namespace Checkin.ViewModels
             set => SetProperty(ref _timeEntries, value);
         }
 
-        private string? _currentTime;
-        public string? CurrentTime
+        private string _currentTime;
+        public string CurrentTime
         {
             get => _currentTime;
             set => SetProperty(ref _currentTime, value);
@@ -121,8 +121,8 @@ namespace Checkin.ViewModels
             CheckoutCommand = new Command(async () => await ExecuteCheckout(), CanExecuteCheckout);
             CheckinCommand = new Command(async () => await ExecuteCheckin(), CanExecuteCheckin);
             SaveManualEntryCommand = new Command(async () => await ExecuteSaveManualEntry());
-            UndoCommand = new Command(async () => await ExecuteUndo(), CanExecuteUndo);
-            RedoCommand = new Command(async () => await ExecuteRedo(), CanExecuteRedo);
+            UndoCommand = new Command(async () => await ExecuteUndo());
+            RedoCommand = new Command(async () => await ExecuteRedo());
             PreferencesCommand = new Command(async () => await ExecutePreferences());
             ShowSummaryCommand = new Command(async () => await ExecuteShowResult());
             ResetCommand = new Command(async () => await ExecuteReset());
@@ -282,7 +282,7 @@ namespace Checkin.ViewModels
 
                 DoBucket.Clear();
                 UpdateCommandStates();
-                CalculateElapsedTime(); // Update summary immediately after checkout
+                CalculateElapsedTime();
                 await SaveDataAsync();
             }
             else
@@ -423,6 +423,7 @@ namespace Checkin.ViewModels
                 }
             }
             CalculateElapsedTime();
+            UpdateCommandStates();
             await SaveDataAsync();
         }
 
@@ -434,8 +435,6 @@ namespace Checkin.ViewModels
                 IsCheckedIn = false;
                 TotalElapsedTime = "00:00:00";
                 DoBucket.Clear();
-                CanUndo = false;
-                CanRedo = false;
 
                 UpdateCommandStates();
                 await SaveDataAsync();
@@ -496,12 +495,8 @@ namespace Checkin.ViewModels
 
             IsCheckedIn = !IsCheckedIn;
             CalculateElapsedTime();
+            UpdateCommandStates();
             await SaveDataAsync();
-        }
-
-        private bool CanExecuteUndo()
-        {
-            return CanUndo;
         }
 
         private async Task ExecuteRedo()
@@ -519,9 +514,12 @@ namespace Checkin.ViewModels
                 }
                 else
                 {
-                    lastEntry.CheckinTime = lastDo;
-                    TimeEntries?.RemoveAt(teCount - 1); // this may be empty
-                    TimeEntries?.Add(lastEntry);
+                    var reEntry = new TimeEntry 
+                    {
+                        CheckinTime = lastDo,
+                        CheckoutTime = null,
+                    };
+                    TimeEntries?.Add(reEntry);
                 }
             }
             else
@@ -532,12 +530,14 @@ namespace Checkin.ViewModels
 
             IsCheckedIn = !IsCheckedIn;
             CalculateElapsedTime();
+            UpdateCommandStates();
             await SaveDataAsync();
         }
 
-        private bool CanExecuteRedo()
+        private void SetDoState()
         {
-            return CanRedo;
+            CanUndo = TimeEntries.Count > 0;
+            CanRedo = DoBucket.Count > 0;
         }
 
         private async Task SaveDataAsync()
@@ -562,6 +562,7 @@ namespace Checkin.ViewModels
             ((Command)ShowManualEntryCommand).ChangeCanExecute();
             ((Command)UndoCommand).ChangeCanExecute();
             ((Command)RedoCommand).ChangeCanExecute();
+            SetDoState();
         }
     }
 }
