@@ -63,7 +63,7 @@ namespace Checkin.ViewModels
 
                 if (double.TryParse(storedHourlyRate, out double rate))
                 {
-                    _summaryHourlyRate = rate;
+                    SummaryHourlyRate = rate;
                 }
                 // get values for checkin/checkout dates
             }
@@ -81,13 +81,32 @@ namespace Checkin.ViewModels
         private void DoTheMath()
         {
             // pass this data throught the ctor
-            TimeSpan timeSpanElapsed = TimeSpan.Parse(_summaryElapsedTime);
+            var parsableElapsedTime = UnformatElapsedTime(_summaryElapsedTime);
+            var timeSpanElapsed = TimeSpan.Parse(parsableElapsedTime);
+            // TimeSpan is parsing incorrectly if hours > 23
+            // will probably need to break the ElapsedTime apart and parse it then
             var totalTimeInMinutes = timeSpanElapsed.TotalMinutes;
             var minutesRate = _summaryHourlyRate / 60;
             CalculatedResult = Math.Round(totalTimeInMinutes * minutesRate, 2).ToString("F2");
 
             // we shouldn't need to save this data every second. Save it when the Result button is clicked
             //SecureStorage.Default.SetAsync(CalculatedResultKey, CalculatedResult);
+        }
+
+        private string UnformatElapsedTime(string elapsedTime)
+        {
+            var result = new string[4];
+            var etSplit = elapsedTime.Split(':');
+            
+            if (int.TryParse(etSplit[0], out int hours))
+            {
+                result[0] = Math.Floor((double)hours / 24).ToString();
+                result[1] = (hours % 24).ToString();
+                result[2] = etSplit[1];
+                result[3] = etSplit[2];
+                return string.Join(':', result);
+            }
+            return elapsedTime;
         }
 
         private async Task ExecuteCloseSummary()

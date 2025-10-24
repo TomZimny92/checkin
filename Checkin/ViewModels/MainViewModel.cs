@@ -325,11 +325,12 @@ namespace Checkin.ViewModels
 
         private static string FormatElapsedTime(TimeSpan time)
         {
-            var sbHours = new StringBuilder((time.Days * 24 + time.Hours).ToString());
+            var hoursActual = (time.Days * 24) + time.Hours;
+            var sbHours = new StringBuilder(hoursActual.ToString());
             var sbMinutes = new StringBuilder(time.Minutes.ToString());
             var sbSeconds = new StringBuilder(time.Seconds.ToString());
 
-            if (time.Hours < 10)
+            if (hoursActual < 10)
             {
                 sbHours.Insert(0, "0");
             }                 
